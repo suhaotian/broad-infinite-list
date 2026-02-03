@@ -1,6 +1,6 @@
 {
   "name": "broad-infinite-list",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "main": "./dist/react.js",
   "react-native": "./src/react-native.tsx",
