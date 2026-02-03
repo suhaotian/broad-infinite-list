@@ -18,13 +18,10 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
-      - name: Run bun
-        run: cd bun-example && bun install && bun index.ts && bun build index.ts > /tmp/tmp.js
-
       - name: Install dependencies
         run: bun i
 
-      - name: Build
+      - name: Run Build
         run: bun run build
 
       - name: Determine release tag
