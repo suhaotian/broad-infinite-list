@@ -29,7 +29,10 @@ npm install broad-infinite-list
 
 ## Quick Start
 
+> [!TIP] > **Copy & Paste**
+
 ```tsx
+"use client";
 import { useState, useRef } from "react";
 import {
   BidirectionalList,
