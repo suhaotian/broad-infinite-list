@@ -8,7 +8,7 @@ import {
   type RefObject,
   useMemo,
 } from "react";
-import { waitForMutation } from './utils';
+import { waitForMutation } from "./utils";
 
 export interface BidirectionalListRef {
   /** Reference to the scrollable container element */
@@ -64,6 +64,7 @@ export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
 const getRAF = () => requestAnimationFrame;
+const getRootEl = () => document.documentElement
 
 export default function BidirectionalList<T>({
   items,
@@ -102,12 +103,11 @@ export default function BidirectionalList<T>({
   const isAdjustingRef = useRef<boolean>(false);
   const itemsRef = useRef<T[]>(items);
   itemsRef.current = items;
-  const rootEl = useMemo(() => document.documentElement, []);
 
   const scrollTo = useCallback(
     (top: number, behavior: ScrollBehavior = "smooth") => {
       if (useWindow)
-        rootEl.scrollTo({
+        getRootEl().scrollTo({
           top,
           behavior,
         });
@@ -121,10 +121,10 @@ export default function BidirectionalList<T>({
   );
 
   useImperativeHandle(ref, () => ({
-    scrollViewRef: useWindow ? { current: rootEl } : scrollViewRef,
+    scrollViewRef: useWindow ? { current: getRootEl() } : scrollViewRef,
     scrollTo,
     scrollToKey(key, behavior) {
-      const containerEl = useWindow ? rootEl : scrollViewRef.current;
+      const containerEl = useWindow ? getRootEl() : scrollViewRef.current;
       const el = containerEl?.querySelector(`[data-key="${key}"]`);
       if (el) {
         el.scrollIntoView({ behavior, block: "start" });
@@ -134,7 +134,7 @@ export default function BidirectionalList<T>({
       scrollTo(0, behavior);
     },
     scrollToBottom(behavior) {
-      const container = useWindow ? rootEl : scrollViewRef.current;
+      const container = useWindow ? getRootEl() : scrollViewRef.current;
       if (container) {
         const height = container.scrollHeight;
         scrollTo(height, behavior);
@@ -143,14 +143,14 @@ export default function BidirectionalList<T>({
   }));
 
   const getScrollTop = useCallback((): number => {
-    if (useWindow) return window.scrollY || rootEl.scrollTop;
+    if (useWindow) return window.scrollY || getRootEl().scrollTop;
     return scrollViewRef.current?.scrollTop ?? 0;
   }, [useWindow]);
 
   const setScrollTop = useCallback(
     (value: number): void => {
       onScrollStart?.();
-      if (useWindow) rootEl.scrollTop = value;
+      if (useWindow) getRootEl().scrollTop = value;
       else if (scrollViewRef.current) scrollViewRef.current.scrollTop = value;
       onScrollEnd?.();
     },
@@ -340,7 +340,9 @@ export default function BidirectionalList<T>({
     const top = topSentinelRef.current;
     const bottom = bottomSentinelRef.current;
     if (!top || !bottom || disable) return;
-    const root: HTMLDivElement | null = useWindow ? null : scrollViewRef.current;
+    const root: HTMLDivElement | null = useWindow
+      ? null
+      : scrollViewRef.current;
     const obs = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
         if (isAdjustingRef.current) return;

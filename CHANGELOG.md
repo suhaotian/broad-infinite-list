@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.4
+
+- Fix react code in Next.js
+
 ## v1.0.3
 
 - Fix react code in Next.js
