@@ -1,6 +1,6 @@
 {
   "name": "broad-infinite-list",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "A lite http request lib based on fetch with plugins support and similar API to axios.",
   "repository": "suhaotian/broad-infinite-list",
   "bugs": "https://github.com/suhaotian/broad-infinite-list/issues",
@@ -70,7 +70,8 @@
     "dist",
     "package.json",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "flow.svg"
   ],
   "keywords": [
     "react",
