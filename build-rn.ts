@@ -3,7 +3,7 @@ import path from "path";
 const start = performance.now();
 
 const result = await Bun.build({
-  entrypoints: ["./src/react.tsx"],
+  entrypoints: ["./src/react-native.tsx"],
   outdir: "./dist",
   format: "esm",
   external: ["react", "react-dom", "react-native"],
