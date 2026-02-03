@@ -2,12 +2,7 @@ import { useState } from "react";
 import { NewsFeedDemo } from "./news-feed";
 import { ChatDemo } from "./chat";
 import { LogsDemo } from "./logs-stream";
-import {
-  Github,
-  ExternalLink,
-  Package,
-  CircleQuestionMark,
-} from "lucide-react"; // Assuming Lucide for icons
+import { Github, ExternalLink, Package, HandHelping } from "lucide-react"; // Assuming Lucide for icons
 
 window.onerror = (e) => {
   alert(e);
@@ -101,19 +96,20 @@ export default function Demos() {
           <div className="flex md:flex-row md:space-x-4 flex-col space-y-6 md:space-y-0 justify-center items-center">
             {links}
             <a
-              href="https://npmjs.com/package/broad-infinite-list"
+              href="https://bundlejs.com/?q=broad-infinite-list%2Freact&treeshake=%5B*%5D&config=%7B%22esbuild%22%3A%7B%22external%22%3A%5B%22react%22%2C%22react-dom%22%2C%22react%2Fjsx-runtime%22%5D%7D%7D"
               target="_blank"
               rel="noreferrer">
               <img
-                src="https://img.shields.io/bundlephobia/minzip/broad-infinite-list?label=size&color=sky&style=flat-square"
+                src="https://deno.bundlejs.com/badge?q=broad-infinite-list/react&treeshake=[*]&config={%22esbuild%22:{%22external%22:[%22react%22,%22react-dom%22,%22react/jsx-runtime%22]}}"
                 alt="Package size for library broad-infinite-list"
                 className="rounded"
               />
             </a>
+            <a href="https://www.jsdocs.io/package/broad-infinite-list"><img src="https://img.shields.io/badge/jsDocs.io-reference-blue" alt="jsDocs.io"/></a>
             <a
               href="https://github.com/suhaotian/broad-infinite-list/issues"
               className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">
-              <CircleQuestionMark size={18} />
+              <HandHelping size={18} />
               Any questions? Create issue.
             </a>
           </div>

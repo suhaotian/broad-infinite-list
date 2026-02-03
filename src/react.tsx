@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   type ForwardedRef,
   type RefObject,
+  useMemo,
 } from "react";
 
 export interface BidirectionalListRef {
@@ -61,6 +62,7 @@ export interface BidirectionalListProps<T> {
 export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
+const RFA = requestAnimationFrame;
 
 export function BidirectionalList<T>({
   items,
@@ -99,11 +101,12 @@ export function BidirectionalList<T>({
   const isAdjustingRef = useRef<boolean>(false);
   const itemsRef = useRef<T[]>(items);
   itemsRef.current = items;
+  const rootEl = useMemo(() => document.documentElement, []);
 
   const scrollTo = useCallback(
     (top: number, behavior: ScrollBehavior = "smooth") => {
       if (useWindow)
-        document.documentElement.scrollTo({
+        rootEl.scrollTo({
           top,
           behavior,
         });
@@ -120,9 +123,7 @@ export function BidirectionalList<T>({
     containerRef,
     scrollTo,
     scrollToKey(key, behavior) {
-      const containerEl = useWindow
-        ? document.documentElement
-        : containerRef.current;
+      const containerEl = useWindow ? rootEl : containerRef.current;
       const el = containerEl?.querySelector(`[data-key="${key}"]`);
       if (el) {
         el.scrollIntoView({ behavior, block: "start" });
@@ -132,9 +133,7 @@ export function BidirectionalList<T>({
       scrollTo(0, behavior);
     },
     scrollToBottom(behavior) {
-      const container = useWindow
-        ? document.documentElement
-        : containerRef.current;
+      const container = useWindow ? rootEl : containerRef.current;
       if (container) {
         const height = container.scrollHeight;
         scrollTo(height, behavior);
@@ -143,14 +142,14 @@ export function BidirectionalList<T>({
   }));
 
   const getScrollTop = useCallback((): number => {
-    if (useWindow) return window.scrollY || document.documentElement.scrollTop;
+    if (useWindow) return window.scrollY || rootEl.scrollTop;
     return containerRef.current?.scrollTop ?? 0;
   }, [useWindow]);
 
   const setScrollTop = useCallback(
     (value: number): void => {
       onScrollStart?.();
-      if (useWindow) document.documentElement.scrollTop = value;
+      if (useWindow) rootEl.scrollTop = value;
       else if (containerRef.current) containerRef.current.scrollTop = value;
       onScrollEnd?.();
     },
@@ -184,7 +183,7 @@ export function BidirectionalList<T>({
         if (!el) {
           attempts++;
           if (attempts < maxAttempts) {
-            requestAnimationFrame(tryRestore);
+            RFA(tryRestore);
           } else {
             console.warn(
               `[BroadScrollList] Scroll restore failed: anchor "${anchorKey}" not found`
@@ -203,7 +202,7 @@ export function BidirectionalList<T>({
         isAdjustingRef.current = false;
       };
 
-      requestAnimationFrame(tryRestore);
+      RFA(tryRestore);
     },
     [findElementByKey, getViewportTop, getScrollTop, setScrollTop]
   );
