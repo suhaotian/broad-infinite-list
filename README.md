@@ -19,7 +19,7 @@
 
 Define a fixed window of visible items (e.g., 30 entries from a 100,000-record dataset). Load items entering the viewport as the user scrolls, and remove items leaving the viewport. This keeps rendered items constant and maintains smooth performance with large datasets.
 
-![](./flow.svg)
+![how-it-works-chart](./flow.svg)
 
 ## Installation
 
@@ -29,7 +29,8 @@ npm install broad-infinite-list
 
 ## Quick Start
 
-> [!TIP] Copy & Paste
+> [!TIP]
+> Copy & Paste
 
 ```tsx
 "use client";
