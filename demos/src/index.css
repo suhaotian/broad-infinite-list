@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  /*  */
+}
+
+
+@media (prefers-reduced-motion) {
+
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+  }
+}
