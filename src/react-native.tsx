@@ -101,10 +101,6 @@ const ItemWrapper = memo(function ItemWrapper({
   return <View onLayout={handleLayout}>{children}</View>;
 });
 
-// ============================================================================
-// Main Component
-// ============================================================================
-
 function BidirectionalListInner<T>(
   {
     items,
@@ -149,10 +145,6 @@ function BidirectionalListInner<T>(
   // Track if we're in the middle of a restoration cycle
   const isRestoring = useRef(false);
 
-  // -------------------------------------------------------------------------
-  // Effects
-  // -------------------------------------------------------------------------
-
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
@@ -171,10 +163,6 @@ function BidirectionalListInner<T>(
       }
     }
   }, [items, itemKey]);
-
-  // -------------------------------------------------------------------------
-  // Scroll Methods
-  // -------------------------------------------------------------------------
 
   const scrollTo = useCallback((y: number, animated = true) => {
     scrollViewRef.current?.scrollTo({ y: Math.max(0, y), animated });
@@ -215,10 +203,6 @@ function BidirectionalListInner<T>(
     [scrollTo, scrollToKey, scrollToTop, scrollToBottom]
   );
 
-  // -------------------------------------------------------------------------
-  // Layout Tracking
-  // -------------------------------------------------------------------------
-
   const handleItemLayout = useCallback((key: string, layout: ItemLayout) => {
     layouts.current.set(key, layout);
   }, []);
@@ -244,10 +228,6 @@ function BidirectionalListInner<T>(
     if (!layout) return null;
     return layout.y + listViewOffset.current;
   }, []);
-
-  // -------------------------------------------------------------------------
-  // Restoration
-  // -------------------------------------------------------------------------
 
   const executeRestoration = useCallback(() => {
     const ctx = pendingRestore.current;
@@ -294,10 +274,6 @@ function BidirectionalListInner<T>(
       isRestoring.current = false;
     }
   }, [onScrollStart, onScrollEnd, getItemAbsoluteY]);
-
-  // -------------------------------------------------------------------------
-  // Load Handler
-  // -------------------------------------------------------------------------
 
   const handleLoad = useCallback(
     async (direction: Direction): Promise<void> => {
@@ -399,10 +375,6 @@ function BidirectionalListInner<T>(
     ]
   );
 
-  // -------------------------------------------------------------------------
-  // ScrollView Handlers
-  // -------------------------------------------------------------------------
-
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -455,10 +427,6 @@ function BidirectionalListInner<T>(
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     metrics.current.viewportHeight = e.nativeEvent.layout.height;
   }, []);
-
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
 
   const defaultSpinner = (
     <View style={{ padding: 12, alignItems: "center" }}>

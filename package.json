@@ -75,15 +75,16 @@
   ],
   "keywords": [
     "react",
-    "vue",
-    "react-native",
     "infinite loading",
     "infinite list",
     "infinite scroll",
     "bidirectional",
     "bidirectional scroll list",
     "large list",
-    "huge list"
+    "huge list",
+    "performance",
+    "vue",
+    "react-native"
   ],
   "author": {
     "name": "@suhaotian",
