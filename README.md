@@ -157,6 +157,39 @@ const Spinner = () => (
 export default MyList;
 ```
 
+### BidirectionalList Props
+
+| Property | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `items` | `T[]` | Yes | - | Current array of items to display |
+| `itemKey` | `(item: T) => string` | Yes | - | Function to extract a unique key from each item |
+| `renderItem` | `(item: T) => React.ReactNode` | Yes | - | Function to render each item |
+| `onLoadMore` | `(direction: "up" \| "down", refItem: T) => Promise<T[]>` | Yes | - | Called when more items should be loaded; returns the new items to prepend/append |
+| `hasPrevious` | `boolean` | Yes | - | Whether there are more items available above the current view |
+| `hasNext` | `boolean` | Yes | - | Whether there are more items available below the current view |
+| `onItemsChange` | `(items: T[]) => void` | No | `undefined` | Called when the items array changes due to loading or trimming |
+| `className` | `string` | No | `undefined` | The container div's className |
+| `listClassName` | `string` | No | `undefined` | The list wrapper div's className |
+| `spinnerRow` | `React.ReactNode` | No | `undefined` | Custom loading indicator shown during fetch |
+| `emptyState` | `React.ReactNode` | No | `undefined` | Content to display when items array is empty |
+| `viewSize` | `number` | No | `30` | Maximum number of items to keep in DOM; older items are trimmed |
+| `threshold` | `number` | No | `200` | Pixel distance from edge to trigger loading |
+| `useWindow` | `boolean` | No | `false` | If true, use window scroll instead of container scroll |
+| `disable` | `boolean` | No | `false` | If true, disable loading in both directions |
+| `onScrollStart` | `() => void` | No | `undefined` | Called when a programmatic scroll adjustment begins |
+| `onScrollEnd` | `() => void` | No | `undefined` | Called when a programmatic scroll adjustment ends |
+
+### BidirectionalListRef
+
+| Property | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `scrollViewRef` | `RefObject<HTMLElement \| null>` | Yes | - | Reference to the scrollable container element |
+| `scrollToTop` | `(behavior?: ScrollBehavior) => void` | Yes | - | Scroll to the top of the list |
+| `scrollToBottom` | `(behavior?: ScrollBehavior) => void` | Yes | - | Scroll to the bottom of the list |
+| `scrollTo` | `(top: number, behavior?: ScrollBehavior) => void` | Yes | - | Scroll to a specific pixel offset from top |
+| `scrollToKey` | `(key: string, behavior?: ScrollBehavior) => void` | Yes | - | Scroll to an item by its key |
+
+
 ## Development
 
 This project use bun, but in `rn-expo-example/` use pnpm.
@@ -164,6 +197,10 @@ This project use bun, but in `rn-expo-example/` use pnpm.
 ```sh
 bun install && bun run build
 ```
+
+## Reporting Issues
+
+Found an issue? Please feel free to [create issue](https://github.com/suhaotian/broad-infinite-list/issues/new)
 
 ## Support
 
