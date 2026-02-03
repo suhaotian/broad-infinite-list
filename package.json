@@ -1,5 +1,6 @@
 {
   "name": "broad-infinite-list",
+  "version": "1.0.0-alpha.0",
   "type": "module",
   "main": "./dist/react.js",
   "types": "./dist/react.d.ts",
