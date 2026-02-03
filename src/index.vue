@@ -1,4 +1,3 @@
-
 <script setup lang="ts" generic="T">
 /**
  * BidirectionalList - Vue 3 Component for Infinite Bidirectional Scrolling
@@ -8,7 +7,7 @@
  * 
  * Key Features:
  * - Bidirectional infinite scroll (load older items upward, newer items downward)
- * - Smart scroll restoration after prepending items (prevents viewport jumping)
+ * - Unified scroll restoration strategy for both directions
  * - Automatic viewport trimming to maintain performance with large datasets
  * - IntersectionObserver-based loading triggers (no scroll event listeners)
  * - Race condition prevention via load locks and adjustment tracking
@@ -16,10 +15,10 @@
  * 
  * Technical Implementation:
  * - Uses IntersectionObserver with sentinel elements to detect when to load
- * - For up-loads: snapshots anchor element position, prepends items, restores scroll
- * - For down-loads: relies on CSS overflow-anchor for native scroll preservation
- * - Trims items outside viewSize to prevent DOM bloat
- * - Waits for Vue DOM updates (MutationObserver) before scroll measurements
+ * - Unified anchor-based scroll restoration for both directions
+ * - Promise-based DOM waiting instead of retry loops
+ * - Consistent trimming logic with proper scroll preservation
+ * - Waits for Vue DOM updates before scroll measurements
  * 
  * Usage:
  * ```vue
@@ -51,7 +50,6 @@ import {
   type Ref,
   type CSSProperties,
 } from "vue";
-import { waitForMutation } from './utils';
 
 export interface BidirectionalListRef {
   scrollViewRef: Ref<HTMLElement | null>;
@@ -60,7 +58,6 @@ export interface BidirectionalListRef {
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
 }
-
 
 /**
  * Slot types for the BidirectionalList component.
@@ -89,6 +86,14 @@ export interface BidirectionalListSlots<T> {
 }
 
 type LoadDirection = "up" | "down";
+
+/**
+ * Scroll anchor data structure for position restoration
+ */
+interface ScrollAnchor {
+  key: string;
+  offsetBefore: number;
+}
 
 /**
  * Define and type the component's slots.
@@ -137,8 +142,10 @@ const props = withDefaults(
 
 /** Cooldown period in milliseconds between load operations to prevent race conditions */
 const LOAD_COOLDOWN_MS = 150;
-/** Shorthand for requestAnimationFrame */
-const RFA = requestAnimationFrame;
+/** Maximum time to wait for DOM element to appear */
+const DOM_WAIT_TIMEOUT_MS = 1000;
+/** Minimum scroll delta to trigger adjustment (prevents micro-adjustments) */
+const MIN_SCROLL_DELTA = 1;
 
 /** Reference to the scrollable container element */
 const scrollViewRef = ref<HTMLElement | null>(null);
@@ -215,7 +222,7 @@ const scrollToBottom = (behavior?: ScrollBehavior): void => {
  * This allows imperative control of scrolling from outside the component.
  */
 defineExpose<BidirectionalListRef>({
-  scrollViewRef: props.useWindow ? { value: rootEl } as typeof scrollViewRef: scrollViewRef,
+  scrollViewRef: props.useWindow ? { value: rootEl } as typeof scrollViewRef : scrollViewRef,
   scrollTo,
   scrollToKey,
   scrollToTop,
@@ -250,58 +257,156 @@ const findElementByKey = (key: string): Element | null => {
 };
 
 /**
- * Restores scroll position so the anchor element stays visually pinned after DOM changes.
- * Used after prepending items or trimming to maintain the user's scroll position.
- * Retries up to 10 times if the anchor isn't in the DOM yet (waiting for Vue to flush updates).
+ * Promise-based waiting for DOM element to appear.
+ * More reliable than retry loops and handles Vue's async DOM updates properly.
  * 
- * @param anchorKey - The item key of the element to keep pinned
- * @param anchorOffsetBefore - The viewport-relative offset of the anchor before DOM changes
+ * @param key - The item key to wait for
+ * @param timeout - Maximum time to wait in milliseconds
+ * @returns Promise that resolves to the element or null if timeout
  */
-const restoreScrollToAnchor = (
-  anchorKey: string,
-  anchorOffsetBefore: number
-): void => {
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  const tryRestore = (): void => {
-    const el = findElementByKey(anchorKey);
-
-    if (!el) {
-      attempts++;
-      if (attempts < maxAttempts) {
-        RFA(tryRestore);
-      } else {
-        console.warn(
-          `[BidirectionalList] Scroll restore failed: anchor "${anchorKey}" not found`
-        );
-        isAdjustingRef.value = false;
-      }
+const waitForElementByKey = (key: string, timeout = DOM_WAIT_TIMEOUT_MS): Promise<Element | null> => {
+  return new Promise((resolve) => {
+    const element = findElementByKey(key);
+    if (element) {
+      resolve(element);
       return;
     }
-
-    const anchorOffsetAfter =
-      el.getBoundingClientRect().top - getViewportTop();
-    const delta = anchorOffsetAfter - anchorOffsetBefore;
-    if (Math.abs(delta) > 1) {
-      setScrollTop(getScrollTop() + delta);
+    
+    const wrapper = listWrapperRef.value;
+    if (!wrapper) {
+      resolve(null);
+      return;
     }
-    isAdjustingRef.value = false;
-  };
+    
+    const observer = new MutationObserver(() => {
+      const element = findElementByKey(key);
+      if (element) {
+        observer.disconnect();
+        clearTimeout(timeoutId);
+        resolve(element);
+      }
+    });
+    
+    const timeoutId = setTimeout(() => {
+      observer.disconnect();
+      resolve(null);
+    }, timeout);
+    
+    observer.observe(wrapper, {
+      childList: true,
+      subtree: true,
+      attributes: false
+    });
+  });
+};
 
-  RFA(tryRestore);
+/**
+ * Creates a scroll anchor from the current viewport state.
+ * The anchor represents a specific item's position that should be preserved.
+ * 
+ * @param items - Current items array
+ * @param direction - Load direction to determine anchor strategy
+ * @returns ScrollAnchor object or null if no suitable anchor found
+ */
+const createScrollAnchor = (items: T[], direction: LoadDirection): ScrollAnchor | null => {
+  if (items.length === 0) return null;
+  
+  // For up-loads, anchor to the first item (will remain after prepend)
+  // For down-loads, anchor to the first item (might be trimmed, but we'll handle that)
+  const anchorItem = items[0] as T;
+  const anchorKey = props.itemKey(anchorItem);
+  const element = findElementByKey(anchorKey);
+  
+  if (!element) return null;
+  
+  return {
+    key: anchorKey,
+    offsetBefore: element.getBoundingClientRect().top - getViewportTop()
+  };
+};
+
+/**
+ * Creates a scroll anchor after spinner is shown but before loading.
+ * For up-loads, this accounts for the spinner being added above the content.
+ */
+const createScrollAnchorAfterSpinner = (items: T[]): ScrollAnchor | null => {
+  if (items.length === 0) return null;
+  
+  const anchorItem = items[0] as T;
+  const anchorKey = props.itemKey(anchorItem);
+  const element = findElementByKey(anchorKey);
+  
+  if (!element) return null;
+  
+  return {
+    key: anchorKey,
+    offsetBefore: element.getBoundingClientRect().top - getViewportTop()
+  };
+};
+
+/**
+ * Restores scroll position using the provided anchor.
+ * Waits for the anchor element to appear in the DOM, then calculates and applies scroll delta.
+ * 
+ * @param anchor - The scroll anchor data
+ */
+const restoreScrollFromAnchor = async (anchor: ScrollAnchor): Promise<void> => {
+  const element = await waitForElementByKey(anchor.key);
+  
+  if (!element) {
+    console.warn(`[BidirectionalList] Failed to restore scroll: anchor "${anchor.key}" not found`);
+    return;
+  }
+  
+  const offsetAfter = element.getBoundingClientRect().top - getViewportTop();
+  const delta = offsetAfter - anchor.offsetBefore;
+  
+  if (Math.abs(delta) > MIN_SCROLL_DELTA) {
+    setScrollTop(getScrollTop() + delta);
+  }
+};
+
+/**
+ * Trims items array to viewSize and returns information about what was trimmed.
+ * Uses consistent logic for both directions.
+ * 
+ * @param items - Items array to trim
+ * @param direction - Load direction (affects trim strategy)
+ * @returns Object with trimmed items and metadata
+ */
+const trimItemsToViewSize = (items: T[], direction: LoadDirection) => {
+  if (items.length <= props.viewSize) {
+    return {
+      trimmedItems: items,
+      wasTrimmed: false,
+      trimmedFromTop: false
+    };
+  }
+  
+  if (direction === "up") {
+    // Trim from bottom (end of array) to preserve newly loaded items at top
+    return {
+      trimmedItems: items.slice(0, props.viewSize),
+      wasTrimmed: true,
+      trimmedFromTop: false
+    };
+  } else {
+    // Trim from top (beginning of array) to preserve newly loaded items at bottom
+    const excess = items.length - props.viewSize;
+    return {
+      trimmedItems: items.slice(excess),
+      wasTrimmed: true,
+      trimmedFromTop: true
+    };
+  }
 };
 
 /**
  * Handles loading more items in the specified direction.
  * 
- * This is the core infinite scroll logic:
- * - Acquires a lock to prevent concurrent loads
- * - Calls onLoadMore to fetch new items
- * - For up-load: prepends items and restores scroll to prevent jumping
- * - For down-load: appends items (browser handles scroll natively via overflow-anchor)
- * - Trims the list if it exceeds viewSize to maintain performance
- * - Releases lock after cooldown period
+ * Approach for different directions:
+ * - Up-loads: Create anchor after spinner shows, restore after items load and spinner hides
+ * - Down-loads: Simple append, only restore if trimming occurs at top
  * 
  * @param direction - "up" to load older items, "down" to load newer items
  */
@@ -312,108 +417,80 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
   if (direction === "down" && !props.hasNext) return;
   if (loadingLockRef[direction]) return;
 
-  const currentItems = itemsRef.value;
+  const currentItems = itemsRef.value as T[];
   if (currentItems.length === 0) return;
 
-  /** Acquire lock and show spinner */
+  // Acquire locks and set loading state
   loadingLockRef[direction] = true;
   isAdjustingRef.value = true;
-  if (direction === "up") isUpLoading.value = true;
-  else isDownLoading.value = true;
+  
+  let scrollAnchor: ScrollAnchor | null = null;
+  
+  if (direction === "up") {
+    isUpLoading.value = true;
+    // Wait for spinner to render, then create anchor
+    await nextTick();
+    scrollAnchor = createScrollAnchorAfterSpinner(currentItems);
+  } else {
+    isDownLoading.value = true;
+    // For down-loads, create anchor before loading (standard approach)
+    scrollAnchor = createScrollAnchor(currentItems, direction);
+  }
 
   try {
-    const refItem: T =
-      direction === "up"
-        ? (currentItems[0] as T)
-        : (currentItems[currentItems.length - 1] as T);
+    const refItem: T = direction === "up" 
+      ? currentItems[0] as T
+      : currentItems[currentItems.length - 1] as T;
+      
     const newItems: T[] = await props.onLoadMore(direction, refItem);
 
     if (newItems.length === 0) {
-      if (direction === "up") isUpLoading.value = false;
-      else isDownLoading.value = false;
-      isAdjustingRef.value = false;
       return;
     }
 
-    if (direction === "up") {
-      /**
-       * Anchor = the item that is currently first in the list. It is
-       * guaranteed to be in the DOM right now (it was rendered before the
-       * await). We snapshot its viewport-relative offset so we can restore
-       * scroll after the prepend, because overflow-anchor is unreliable
-       * inside iframes (e.g. artifact renderers).
-       */
-      const anchorKey: string = props.itemKey(currentItems[0] as T);
-      const anchorEl: Element | null = findElementByKey(anchorKey);
-      const anchorOffsetBefore: number = anchorEl
-        ? anchorEl.getBoundingClientRect().top - getViewportTop()
-        : 0;
+    // Merge new items with existing items
+    const mergedItems: T[] = direction === "up" 
+      ? [...newItems, ...currentItems] as T[]
+      : [...currentItems, ...newItems] as T[];
 
-      let nextItems: T[] = [...newItems, ...currentItems] as T[];
-      if (nextItems.length > props.viewSize) {
-        /**
-         * Trim from the bottom (opposite end from prepend).
-         * Removed items are below the viewport — no scroll effect.
-         */
-        nextItems = nextItems.slice(0, props.viewSize);
-      }
-
-      /** Commit new items and hide the up-spinner */
-      props.onItemsChange?.(nextItems);
-      isUpLoading.value = false;
-
-      /**
-       * Restore after paint so the prepended + trimmed DOM is measured.
-       * The anchor element (old first item) is still in nextItems — it
-       * survived the prepend and any bottom-trim — so it will be in the
-       * DOM when the mutation fires.
-       */
-      if (listWrapperRef.value) {
-        waitForMutation(listWrapperRef.value, () => {
-          restoreScrollToAnchor(anchorKey, anchorOffsetBefore);
-        });
-      } else {
-        isAdjustingRef.value = false;
-      }
-    } else {
-      let nextItems: T[] = [...currentItems, ...newItems] as T[];
-      let didTrim: boolean = false;
-      let anchorKey: string = "";
-      let anchorOffsetBefore: number = 0;
-
-      if (nextItems.length > props.viewSize) {
-        const countToRemove: number = nextItems.length - props.viewSize;
-        nextItems = nextItems.slice(countToRemove);
-        didTrim = true;
-
-        /**
-         * Anchor = first survivor after trim. It's in the DOM now (was in
-         * currentItems). Down-spinner is below it — safe to measure.
-         */
-        anchorKey = props.itemKey(nextItems[0] as T);
-        const anchorEl: Element | null = findElementByKey(anchorKey);
-        if (anchorEl)
-          anchorOffsetBefore =
-            anchorEl.getBoundingClientRect().top - getViewportTop();
-      }
-
-      /** Commit and hide spinner */
-      props.onItemsChange?.(nextItems);
-      isDownLoading.value = false;
-
-      if (didTrim && listWrapperRef.value) {
-        waitForMutation(listWrapperRef.value, () => {
-          restoreScrollToAnchor(anchorKey, anchorOffsetBefore);
-        });
-      } else {
-        isAdjustingRef.value = false;
-      }
+    // Trim to viewSize and get trim information
+    const { trimmedItems, wasTrimmed, trimmedFromTop } = trimItemsToViewSize(mergedItems, direction);
+    
+    // Determine if scroll restoration is needed
+    const needsScrollRestore = direction === "up" || (wasTrimmed && trimmedFromTop);
+    
+    // Update scroll anchor if items were trimmed from top
+    let finalScrollAnchor = scrollAnchor;
+    if (wasTrimmed && trimmedFromTop && trimmedItems.length > 0) {
+      // Original anchor might have been trimmed, use new first item
+      finalScrollAnchor = createScrollAnchor(trimmedItems, direction);
     }
-  } catch {
+
+    // Commit the new items (this will hide the spinner)
+    props.onItemsChange?.(trimmedItems);
+    
+    // Hide spinner first
     if (direction === "up") isUpLoading.value = false;
     else isDownLoading.value = false;
-    isAdjustingRef.value = false;
+
+    // Wait for DOM update (spinner removal + new items render)
+    await nextTick();
+    
+    // Restore scroll position if needed and anchor is available
+    if (needsScrollRestore && finalScrollAnchor) {
+      await restoreScrollFromAnchor(finalScrollAnchor);
+    }
+
+  } catch (error) {
+    console.error(`[BidirectionalList] Load error (${direction}):`, error);
   } finally {
+    // Clean up loading state (in case not already done)
+    if (direction === "up") isUpLoading.value = false;
+    else isDownLoading.value = false;
+    
+    isAdjustingRef.value = false;
+    
+    // Release lock after cooldown
     setTimeout(() => {
       loadingLockRef[direction] = false;
     }, LOAD_COOLDOWN_MS);

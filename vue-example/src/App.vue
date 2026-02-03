@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import  BidirectionalList, { type BidirectionalListRef } from 'broad-infinite-list/vue';
 
 /**
@@ -52,10 +52,10 @@ onMounted(() => {
   const initialMessages = ALL_MESSAGES.slice(-VIEW_SIZE);
   messages.value = initialMessages;
   if (initialMessages.length > 0) {
-    setTimeout(() => {
+    nextTick(() => {
       listRef.value?.scrollToBottom('instant');
       disable.value = false;
-    }, 100);
+    })
   }
 });
 
@@ -216,7 +216,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
     <button
       v-if="showJump"
       @click="onJump"
-      class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
+      class="fixed bottom-24 right-6 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
     >
       {{ unreadCount > 0 ? `New Messages (${unreadCount})` : 'Scroll to Bottom' }}
       ↓

@@ -23,7 +23,7 @@ export interface ChatMessage {
 }
 
 const TOTAL_COUNT = 2e4;
-const VIEW_SIZE = 30;
+const VIEW_SIZE = 60;
 const PAGE_SIZE = 20;
 
 const generateMessage = (id: number): ChatMessage => ({

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.2
+
+- Improve vue code
+
 ## v1.0.1
 
 - Improve usage in README

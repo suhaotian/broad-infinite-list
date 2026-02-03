@@ -11,7 +11,7 @@
 
 ## Demos
 
-- Chat Messages [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
+- Chat Messages List [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
 - News feed [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
 - Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
 
@@ -29,11 +29,11 @@ npm install broad-infinite-list
 
 ## Quick Start
 
-> [!NOTE]
-> For React web, copy and paste the demo code, then run it.
-
 > [!CAUTION]
 > For vue3 or React Native usage, check the usage in `vue-example/src/App.vue` or `rn-expo-example/app/(tabs)/index.tsx`
+
+> [!NOTE]
+> For React web, copy and paste the below demo code, then run it.
 
 ```tsx
 "use client";

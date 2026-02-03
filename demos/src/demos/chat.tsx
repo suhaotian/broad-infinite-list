@@ -144,7 +144,7 @@ export function ChatDemo() {
           hasPrevious={hasPrevious}
           hasNext={hasNext}
           viewSize={VIEW_SIZE}
-          threshold={100}
+          threshold={10}
           onLoadMore={handleLoadMore}
           onItemsChange={setMessages}
           spinnerRow={
@@ -182,7 +182,7 @@ export function ChatDemo() {
       {showJump && (
         <button
           onClick={onJump}
-          className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
+          className="absolute bottom-24 right-6 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
           {unreadCount > 0
             ? `New Messages (${unreadCount})`
             : "Scroll to Bottom"}{" "}
