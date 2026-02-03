@@ -51,7 +51,7 @@ export default function Demos() {
             </div>
             <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
               A high-performance, <strong>bidirectional infinite loader</strong>{" "}
-              for React. Smoothly stream logs, feed updates, or chat history in
+              for React, React Native and Vue. Smoothly stream logs, feed updates, or chat history in
               both directions without layout shifts.
             </p>
           </div>
