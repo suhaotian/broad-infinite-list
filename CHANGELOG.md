@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.0
+
+- Fix size badge
+
 ## v1.0.0-alpha-3
 
 - Add **./flow.svg** to `files` in package.json
