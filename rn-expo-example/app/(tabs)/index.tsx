@@ -63,7 +63,7 @@ export default function ChatDemoScreen() {
 
   const handleLoadMore: BidirectionalListProps<ChatMessage>["onLoadMore"] =
     async (direction, refItem) => {
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 200));
 
       const idx = ALL_MESSAGES.findIndex((m) => m.id === refItem.id);
       if (idx === -1) return [];

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.0.1
+
+- Improve usage in README
+
 ## v1.0.0
 
 - Fix size badge

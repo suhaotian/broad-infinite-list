@@ -29,8 +29,11 @@ npm install broad-infinite-list
 
 ## Quick Start
 
-> [!TIP]
-> Copy and paste the demo code, then run it.
+> [!NOTE]
+> For React web, copy and paste the demo code, then run it.
+
+> [!CAUTION]
+> For vue3 or React Native usage, check the usage in `vue-example/src/App.vue` or `rn-expo-example/app/(tabs)/index.tsx`
 
 ```tsx
 "use client";
