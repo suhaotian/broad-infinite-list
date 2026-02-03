@@ -1,6 +1,6 @@
 {
   "name": "broad-infinite-list",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "type": "module",
   "main": "./dist/react.js",
   "types": "./dist/react.d.ts",
@@ -35,5 +35,19 @@
     "LICENSE",
     "README.md"
   ],
+  "keywords": [
+    "react",
+    "infinite list",
+    "infinite scroll",
+    "bidirectional",
+    "bidirectional scroll list",
+    "large list",
+    "huge list"
+  ],
+  "author": {
+    "name": "@suhaotian",
+    "url": "https://github.com/suhaotian"
+  },
+  "homepage": "https://suhaotian.github.io/broad-infinite-list",
   "license": "MIT"
 }
