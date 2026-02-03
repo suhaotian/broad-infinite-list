@@ -29,7 +29,7 @@ npm install broad-infinite-list
 
 ## Quick Start
 
-> [!TIP] > **Copy & Paste**
+> [!TIP] Copy & Paste
 
 ```tsx
 "use client";
