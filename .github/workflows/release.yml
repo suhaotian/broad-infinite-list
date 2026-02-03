@@ -54,4 +54,4 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public --no-git-checks --provenance --registry=https://registry.npmjs.org --tag=${{ steps.release-tag.outputs.npm_tag }}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_ELEVATED }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
