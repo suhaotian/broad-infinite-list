@@ -35,9 +35,15 @@ let ALL_MESSAGES: ChatMessage[] = [];
 
 const messages = ref<ChatMessage[]>([]);
 const disable = ref(true);
+const useWindowRef = ref(false);
 const unreadCount = ref(0);
 const inputValue = ref('');
 const listRef = ref<BidirectionalListRef>();
+
+  const toggleUseWindow = () => {
+    useWindowRef.value = !useWindowRef.value;
+  }
+
 
 onMounted(() => {
   ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
@@ -130,8 +136,8 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
 </script>
 
 <template>
-  <div class="h-[650px] bg-white rounded-3xl border border-gray-200 flex flex-col overflow-hidden shadow-2xl relative">
-    <div class="p-4 border-b border-black/10 bg-white/80 backdrop-blur sticky top-0 z-10 flex items-center justify-between shrink-0">
+  <div class="bg-white rounded-3xl border border-gray-200 flex flex-col shadow-2xl relative" :class='useWindowRef ? "min-h-screen min-h-[100dvh]!":"h-screen h-[100dvh]! overflow-hidden"'>
+    <div class="p-4 border-b border-black/10 bg-white/80 backdrop-blur sticky top-0 flex items-center justify-between shrink-0 z-9">
       <div class="flex items-center gap-3">
         <div class="size-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
           JD
@@ -145,20 +151,22 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
           </p>
         </div>
       </div>
-      <div class="flex flex-col items-end">
-        <span class="text-[10px] text-green-500 font-bold tracking-widest flex items-center gap-1">
+      <div class="flex items-center space-x-2">
+        <span class="text-xs text-green-500 font-bold tracking-widest flex items-center gap-1">
           <span class="size-1.5 bg-green-500 rounded-full animate-pulse" />
           ONLINE
         </span>
+        <button class='text-[10px] text-white shadow font-bold bg-sky-500 rounded-lg px-2 py-1 cursor-pointer' @click='toggleUseWindow'>useWindow: {{ useWindowRef }}</button>
       </div>
     </div>
 
-    <div class="flex-1 min-h-0 bg-slate-50">
+    <div class="flex-1 min-h-0 bg-slate-50 pb-20">
       <BidirectionalList
+        :key='useWindowRef ? 1 : 2'
         ref="listRef"
         :items="messages"
         :item-key="itemKey"
-        :use-window="false"
+        :use-window="useWindowRef"
         :has-previous="hasPrevious"
         :has-next="hasNext"
         :view-size="VIEW_SIZE"
@@ -208,7 +216,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
     <button
       v-if="showJump"
       @click="onJump"
-      class="absolute bottom-24 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
+      class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all z-20 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2"
     >
       {{ unreadCount > 0 ? `New Messages (${unreadCount})` : 'Scroll to Bottom' }}
       ↓
@@ -216,7 +224,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
 
     <form
       @submit.prevent="sendMessage"
-      class="p-4 bg-white border-t border-black/10 flex gap-2 shrink-0"
+      class="p-4 bg-white border-t border-black/10 flex gap-2 shrink-0 fixed bottom-0 left-0 right-0"
     >
       <input
         v-model="inputValue"
