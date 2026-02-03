@@ -11,7 +11,7 @@ import {
   type ChatMessage,
 } from './messageApi';
 
-const VIEW_SIZE = 50;
+const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 
 const messages = ref<ChatMessage[]>([]);
@@ -30,7 +30,7 @@ onMounted(async () => {
   initializeMessages();
   totalCount.value = getTotalCount();
   
-  const response = await fetchMessages({ pageSize: VIEW_SIZE });
+  const response = await fetchMessages({ pageSize: VIEW_COUNT });
   messages.value = response.messages;
   
   if (response.messages.length > 0) {
@@ -70,7 +70,7 @@ const showJump = computed(() => hasNext.value);
 
 const onJump = async (): Promise<void> => {
   unreadCount.value = 0;
-  const response = await fetchMessages({ pageSize: VIEW_SIZE });
+  const response = await fetchMessages({ pageSize: VIEW_COUNT });
   messages.value = response.messages;
   setTimeout(() => listRef.value?.scrollToBottom('instant'), 50);
 };
@@ -133,7 +133,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
         :use-window="useWindowRef"
         :has-previous="hasPrevious"
         :has-next="hasNext"
-        :view-size="VIEW_SIZE"
+        :view-size="VIEW_COUNT"
         :threshold="100"
         :on-load-more="handleLoadMore"
         :on-items-change="handleItemsChange"

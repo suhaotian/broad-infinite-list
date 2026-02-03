@@ -52,7 +52,7 @@ export interface BidirectionalListProps<T> {
   /** Content to display when items array is empty */
   emptyState?: React.ReactNode;
   /** Maximum number of items to keep in DOM; older items are trimmed */
-  viewSize?: number;
+  viewCount?: number;
   /** Pixel distance from edge to trigger loading */
   threshold?: number;
   /** Whether there are more items available above the current view */
@@ -112,8 +112,8 @@ function BidirectionalListInner<T>(
     containerStyle,
     listStyle,
     emptyState,
-    viewSize = 30,
-    threshold = 200,
+    viewCount = 50,
+    threshold = 10,
     hasPrevious,
     hasNext,
     disable,
@@ -312,7 +312,7 @@ function BidirectionalListInner<T>(
           anchorItem = currentItems[0]!;
         } else {
           const combined = [...currentItems, ...newItems];
-          const trimCount = Math.max(0, combined.length - viewSize);
+          const trimCount = Math.max(0, combined.length - viewCount);
           anchorItem = combined[trimCount] ?? currentItems[0]!;
         }
 
@@ -334,13 +334,13 @@ function BidirectionalListInner<T>(
         let nextItems: T[];
         if (direction === "up") {
           nextItems = [...newItems, ...currentItems];
-          if (nextItems.length > viewSize) {
-            nextItems = nextItems.slice(0, viewSize);
+          if (nextItems.length > viewCount) {
+            nextItems = nextItems.slice(0, viewCount);
           }
         } else {
           nextItems = [...currentItems, ...newItems];
-          if (nextItems.length > viewSize) {
-            const trim = nextItems.length - viewSize;
+          if (nextItems.length > viewCount) {
+            const trim = nextItems.length - viewCount;
             nextItems = nextItems.slice(trim);
           }
         }
@@ -369,7 +369,7 @@ function BidirectionalListInner<T>(
       hasNext,
       onLoadMore,
       onItemsChange,
-      viewSize,
+      viewCount,
       itemKey,
       getItemAbsoluteY,
     ]

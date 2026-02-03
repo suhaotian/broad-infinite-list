@@ -13,7 +13,7 @@ export interface LogEntry {
 const LOG_LEVELS: LogEntry["level"][] = ["INFO", "WARN", "ERROR", "DEBUG"];
 
 const TOTAL_COUNT = 1e4;
-const VIEW_SIZE = 100;
+const VIEW_COUNT = 100;
 const PAGE_SIZE = 50;
 
 const generateLog = (id: number): LogEntry => ({
@@ -36,7 +36,7 @@ export function LogsDemo() {
 
   useEffect(() => {
     ALL_LOGS = Array.from({ length: TOTAL_COUNT }, (_, i) => generateLog(i));
-    const logs = ALL_LOGS.slice(-VIEW_SIZE);
+    const logs = ALL_LOGS.slice(-VIEW_COUNT);
     setLogs(() => {
       return logs;
     });
@@ -78,7 +78,7 @@ export function LogsDemo() {
     logs?.[logs.length - 1]?.id !== ALL_LOGS[ALL_LOGS.length - 1]?.id;
   const onJump = () => {
     setUnreadCount(0);
-    setLogs(ALL_LOGS.slice(-VIEW_SIZE));
+    setLogs(ALL_LOGS.slice(-VIEW_COUNT));
     setTimeout(() => listRef.current?.scrollToBottom("instant"), 50);
   };
   const onScrollStart = () => {
@@ -125,7 +125,7 @@ export function LogsDemo() {
           hasPrevious={hasPrevious}
           hasNext={hasNext}
           disable={disable}
-          viewSize={VIEW_SIZE}
+          viewCount={VIEW_COUNT}
           onLoadMore={handleLoadMore}
           onItemsChange={setLogs}
           spinnerRow={

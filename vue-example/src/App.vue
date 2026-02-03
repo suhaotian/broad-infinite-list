@@ -15,7 +15,7 @@ interface ChatMessage {
 }
 
 const TOTAL_COUNT = 1e4;
-const VIEW_SIZE = 50;
+const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 
 const generateMessage = (id: number): ChatMessage => ({
@@ -49,7 +49,7 @@ onMounted(() => {
   ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
     generateMessage(i)
   );
-  const initialMessages = ALL_MESSAGES.slice(-VIEW_SIZE);
+  const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
   messages.value = initialMessages;
   if (initialMessages.length > 0) {
     nextTick(() => {
@@ -96,7 +96,7 @@ const showJump = computed(() =>
 
 const onJump = (): void => {
   unreadCount.value = 0;
-  messages.value = ALL_MESSAGES.slice(-VIEW_SIZE);
+  messages.value = ALL_MESSAGES.slice(-VIEW_COUNT);
   setTimeout(() => listRef.value?.scrollToBottom('instant'), 50);
 };
 
@@ -169,7 +169,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
         :use-window="useWindowRef"
         :has-previous="hasPrevious"
         :has-next="hasNext"
-        :view-size="VIEW_SIZE"
+        :view-size="VIEW_COUNT"
         :threshold="100"
         :on-load-more="handleLoadMore"
         :on-items-change="handleItemsChange"

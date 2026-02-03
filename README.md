@@ -68,12 +68,12 @@ const ALL_NEWS: NewsItem[] = Array.from({ length: TOTAL }, (_, i) => ({
 
 const NEWS_BY_RECENCY = [...ALL_NEWS].reverse();
 
-const VIEW_SIZE = 50;
+const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 
 function MyList() {
   const [items, setItems] = useState<NewsItem[]>(
-    NEWS_BY_RECENCY.slice(0, VIEW_SIZE)
+    NEWS_BY_RECENCY.slice(0, VIEW_COUNT)
   );
 
   const newestLoaded = items[0]?.id ?? 0;
@@ -97,7 +97,7 @@ function MyList() {
   const listRef = useRef<BidirectionalListRef>(null);
   const showScrollTopButton = items?.[0]?.id !== NEWS_BY_RECENCY[0]?.id;
   const onScrollToFirst = () => {
-    setItems(NEWS_BY_RECENCY.slice(0, VIEW_SIZE));
+    setItems(NEWS_BY_RECENCY.slice(0, VIEW_COUNT));
     listRef.current?.scrollToTop();
   };
 
@@ -127,7 +127,7 @@ function MyList() {
         onItemsChange={setItems}
         hasPrevious={hasPrevious}
         hasNext={hasNext}
-        viewSize={VIEW_SIZE}
+        viewCount={VIEW_COUNT}
         useWindow={true}
       />
       <button
@@ -172,8 +172,8 @@ export default MyList;
 | `listClassName` | `string` | No | `undefined` | The list wrapper div's className |
 | `spinnerRow` | `React.ReactNode` | No | `undefined` | Custom loading indicator shown during fetch |
 | `emptyState` | `React.ReactNode` | No | `undefined` | Content to display when items array is empty |
-| `viewSize` | `number` | No | `30` | Maximum number of items to keep in DOM; older items are trimmed |
-| `threshold` | `number` | No | `200` | Pixel distance from edge to trigger loading |
+| `viewCount` | `number` | No | `50` | Maximum number of items to keep in DOM; older items are trimmed |
+| `threshold` | `number` | No | `10` | Pixel distance from edge to trigger loading |
 | `useWindow` | `boolean` | No | `false` | If true, use window scroll instead of container scroll |
 | `disable` | `boolean` | No | `false` | If true, disable loading in both directions |
 | `onScrollStart` | `() => void` | No | `undefined` | Called when a programmatic scroll adjustment begins |

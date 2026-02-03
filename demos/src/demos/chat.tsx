@@ -12,7 +12,7 @@ export interface ChatMessage {
 }
 
 const TOTAL_COUNT = 1e4;
-const VIEW_SIZE = 50;
+const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 
 const generateMessage = (id: number): ChatMessage => ({
@@ -40,7 +40,7 @@ export function ChatDemo() {
     ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
       generateMessage(i)
     );
-    const messages = ALL_MESSAGES.slice(-VIEW_SIZE);
+    const messages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(messages);
     if (messages.length > 0) {
       setTimeout(() => {
@@ -81,7 +81,7 @@ export function ChatDemo() {
     ALL_MESSAGES[ALL_MESSAGES.length - 1]?.id;
   const onJump = () => {
     setUnreadCount(0);
-    setMessages(ALL_MESSAGES.slice(-VIEW_SIZE));
+    setMessages(ALL_MESSAGES.slice(-VIEW_COUNT));
     setTimeout(() => listRef.current?.scrollToBottom("instant"), 50);
   };
   const onScrollStart = () => {
@@ -143,7 +143,7 @@ export function ChatDemo() {
           useWindow={false}
           hasPrevious={hasPrevious}
           hasNext={hasNext}
-          viewSize={VIEW_SIZE}
+          viewCount={VIEW_COUNT}
           threshold={10}
           onLoadMore={handleLoadMore}
           onItemsChange={setMessages}

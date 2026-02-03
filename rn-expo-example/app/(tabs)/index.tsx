@@ -23,7 +23,7 @@ export interface ChatMessage {
 }
 
 const TOTAL_COUNT = 2e4;
-const VIEW_SIZE = 60;
+const VIEW_COUNT = 60;
 const PAGE_SIZE = 20;
 
 const generateMessage = (id: number): ChatMessage => ({
@@ -51,7 +51,7 @@ export default function ChatDemoScreen() {
     ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
       generateMessage(i)
     );
-    const initialMessages = ALL_MESSAGES.slice(-VIEW_SIZE);
+    const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(initialMessages);
     if (initialMessages.length > 0) {
       setTimeout(() => {
@@ -93,7 +93,7 @@ export default function ChatDemoScreen() {
 
   const onJump = () => {
     setUnreadCount(0);
-    setMessages(ALL_MESSAGES.slice(-VIEW_SIZE));
+    setMessages(ALL_MESSAGES.slice(-VIEW_COUNT));
     setTimeout(() => listRef.current?.scrollToBottom(false), 50);
   };
 
@@ -160,7 +160,7 @@ export default function ChatDemoScreen() {
             itemKey={(m) => m.id.toString()}
             hasPrevious={hasPrevious}
             hasNext={hasNext}
-            viewSize={VIEW_SIZE}
+            viewCount={VIEW_COUNT}
             threshold={100}
             onLoadMore={handleLoadMore}
             onItemsChange={setMessages}

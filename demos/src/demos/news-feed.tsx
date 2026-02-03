@@ -12,7 +12,7 @@ export interface NewsItem {
 }
 
 const TOTAL_COUNT = 1e4;
-const VIEW_SIZE = 50;
+const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 const CATEGORIES = ["Tech", "Science", "Politics", "Business"];
 
@@ -34,7 +34,7 @@ export function NewsFeedDemo() {
   useEffect(() => {
     ALL_NEWS = Array.from({ length: TOTAL_COUNT }, (_, i) => generateNews(i));
     ALL_NEWS.reverse();
-    setItems(ALL_NEWS.slice(0, VIEW_SIZE));
+    setItems(ALL_NEWS.slice(0, VIEW_COUNT));
   }, []);
 
   const handleLoadMore: BidirectionalListProps<NewsItem>["onLoadMore"] = async (
@@ -61,7 +61,7 @@ export function NewsFeedDemo() {
   const listRef = useRef<BidirectionalListRef>(null);
   const showJump = items?.[0]?.id !== ALL_NEWS[0]?.id;
   const onJump = () => {
-    setItems(ALL_NEWS.slice(0, VIEW_SIZE));
+    setItems(ALL_NEWS.slice(0, VIEW_COUNT));
     listRef.current?.scrollToTop("instant");
   };
   const onScrollStart = () => {
@@ -92,7 +92,7 @@ export function NewsFeedDemo() {
         threshold={100}
         onLoadMore={handleLoadMore}
         onItemsChange={setItems}
-        viewSize={VIEW_SIZE}
+        viewCount={VIEW_COUNT}
         spinnerRow={
           <div className="p-10 flex justify-center">
             <div className="size-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />

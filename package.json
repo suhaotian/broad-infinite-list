@@ -1,6 +1,6 @@
 {
   "name": "broad-infinite-list",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "A lite http request lib based on fetch with plugins support and similar API to axios.",
   "repository": "suhaotian/broad-infinite-list",
   "bugs": "https://github.com/suhaotian/broad-infinite-list/issues",

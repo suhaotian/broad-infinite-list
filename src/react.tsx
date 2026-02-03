@@ -43,7 +43,7 @@ export interface BidirectionalListProps<T> {
   /** Content to display when items array is empty */
   emptyState?: React.ReactNode;
   /** Maximum number of items to keep in DOM; older items are trimmed */
-  viewSize?: number;
+  viewCount?: number;
   /** Pixel distance from edge to trigger loading */
   threshold?: number;
   /** If true, use window scroll instead of container scroll */
@@ -78,8 +78,8 @@ export default function BidirectionalList<T>({
   className,
   listClassName,
   emptyState,
-  viewSize = 30,
-  threshold = 200,
+  viewCount = 50,
+  threshold = 10,
   useWindow = false,
   hasPrevious,
   hasNext,
@@ -253,12 +253,12 @@ export default function BidirectionalList<T>({
             : 0;
 
           let nextItems: T[] = [...newItems, ...currentItems];
-          if (nextItems.length > viewSize) {
+          if (nextItems.length > viewCount) {
             /**
              * Trim from the bottom (opposite end from prepend).
              * Removed items are below the viewport — no scroll effect.
              */
-            nextItems = nextItems.slice(0, viewSize);
+            nextItems = nextItems.slice(0, viewCount);
           }
 
           /** Commit new items and hide the up-spinner. */
@@ -284,8 +284,8 @@ export default function BidirectionalList<T>({
           let anchorKey: string = "";
           let anchorOffsetBefore: number = 0;
 
-          if (nextItems.length > viewSize) {
-            const countToRemove: number = nextItems.length - viewSize;
+          if (nextItems.length > viewCount) {
+            const countToRemove: number = nextItems.length - viewCount;
             nextItems = nextItems.slice(countToRemove);
             didTrim = true;
 
@@ -326,7 +326,7 @@ export default function BidirectionalList<T>({
       disable,
       onLoadMore,
       onItemsChange,
-      viewSize,
+      viewCount,
       itemKey,
       findElementByKey,
       getViewportTop,

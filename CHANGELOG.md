@@ -1,5 +1,12 @@
 # CHANGELOG
 
+
+## v1.1.0
+
+- Prop `viewSize` to `viewCount`
+- Update README
+
+
 ## v1.0.4
 
 - Fix react code in Next.js

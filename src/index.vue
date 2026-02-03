@@ -3,7 +3,7 @@
  * BidirectionalList - Vue 3 Component for Infinite Bidirectional Scrolling
  * 
  * A highly optimized infinite scroll list that loads content in both directions (up and down).
- * Maintains viewport performance by trimming items outside the viewSize limit.
+ * Maintains viewport performance by trimming items outside the viewCount limit.
  * 
  * Key Features:
  * - Bidirectional infinite scroll (load older items upward, newer items downward)
@@ -116,7 +116,7 @@ const props = withDefaults(
     /** The list wrapper div's className */
     listClassName?: string;
     /** Maximum number of items to keep in DOM; older items are trimmed */
-    viewSize?: number;
+    viewCount?: number;
     /** Pixel distance from edge to trigger loading */
     threshold?: number;
     /** If true, use window scroll instead of container scroll */
@@ -133,8 +133,8 @@ const props = withDefaults(
     onScrollEnd?: () => void;
   }>(),
   {
-    viewSize: 30,
-    threshold: 200,
+    viewCount: 50,
+    threshold: 10,
     useWindow: false,
     disable: false,
   }
@@ -367,15 +367,15 @@ const restoreScrollFromAnchor = async (anchor: ScrollAnchor): Promise<void> => {
 };
 
 /**
- * Trims items array to viewSize and returns information about what was trimmed.
+ * Trims items array to viewCount and returns information about what was trimmed.
  * Uses consistent logic for both directions.
  * 
  * @param items - Items array to trim
  * @param direction - Load direction (affects trim strategy)
  * @returns Object with trimmed items and metadata
  */
-const trimItemsToViewSize = (items: T[], direction: LoadDirection) => {
-  if (items.length <= props.viewSize) {
+const trimItemsToviewCount = (items: T[], direction: LoadDirection) => {
+  if (items.length <= props.viewCount) {
     return {
       trimmedItems: items,
       wasTrimmed: false,
@@ -386,13 +386,13 @@ const trimItemsToViewSize = (items: T[], direction: LoadDirection) => {
   if (direction === "up") {
     // Trim from bottom (end of array) to preserve newly loaded items at top
     return {
-      trimmedItems: items.slice(0, props.viewSize),
+      trimmedItems: items.slice(0, props.viewCount),
       wasTrimmed: true,
       trimmedFromTop: false
     };
   } else {
     // Trim from top (beginning of array) to preserve newly loaded items at bottom
-    const excess = items.length - props.viewSize;
+    const excess = items.length - props.viewCount;
     return {
       trimmedItems: items.slice(excess),
       wasTrimmed: true,
@@ -453,8 +453,8 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
       ? [...newItems, ...currentItems] as T[]
       : [...currentItems, ...newItems] as T[];
 
-    // Trim to viewSize and get trim information
-    const { trimmedItems, wasTrimmed, trimmedFromTop } = trimItemsToViewSize(mergedItems, direction);
+    // Trim to viewCount and get trim information
+    const { trimmedItems, wasTrimmed, trimmedFromTop } = trimItemsToviewCount(mergedItems, direction);
     
     // Determine if scroll restoration is needed
     const needsScrollRestore = direction === "up" || (wasTrimmed && trimmedFromTop);
