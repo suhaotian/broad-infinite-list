@@ -1,6 +1,6 @@
 # [Broad Infinite List](https://suhaotian.github.io/broad-infinite-list/) &middot; [![Size](https://deno.bundlejs.com/badge?q=broad-infinite-list@&badge=detailed)](https://bundlejs.com/?q=broad-infinite-list) [![npm version](https://img.shields.io/npm/v/broad-infinite-list.svg?style=flat)](https://www.npmjs.com/package/broad-infinite-list) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suhaotian/broad-infinite-list/pulls) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/suhaotian/broad-infinite-list/blob/main/LICENSE) ![typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label&color=blue)
 
-**broad-infinite-list** is a tiny component for displaying large lists without slowing down your app by only showing a few items at a time. No need to configure every row's height or use fixed row heights. Good for chat messages list, news feed list or stream logs.
+**broad-infinite-list** is a tiny component that renders large lists efficiently by showing only a limited range of items. No need to configure each row’s height or use fixed row heights. It is suitable for chat message lists, news feed lists, and stream logs.
 
 ## Features
 
