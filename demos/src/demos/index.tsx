@@ -100,7 +100,7 @@ export default function Demos() {
               target="_blank"
               rel="noreferrer">
               <img
-                src="https://deno.bundlejs.com/badge?q=broad-infinite-list/react&treeshake=[*]&config={%22esbuild%22:{%22external%22:[%22react%22,%22react-dom%22,%22react/jsx-runtime%22]}}"
+                src="https://deno.bundlejs.com/badge?q=broad-infinite-list/react&treeshake=[{default}]&config={%22esbuild%22:{%22external%22:[%22react%22,%22react-dom%22,%22react/jsx-runtime%22]}}"
                 alt="Package size for library broad-infinite-list"
                 className="rounded"
               />
