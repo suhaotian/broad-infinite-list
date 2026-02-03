@@ -3,6 +3,7 @@
   "version": "1.0.0-alpha.1",
   "type": "module",
   "main": "./dist/react.js",
+  "react-native": "./src/react-native.tsx",
   "types": "./dist/react.d.ts",
   "exports": {
     "./react": {
@@ -10,8 +11,10 @@
       "types": "./dist/react.d.ts"
     },
     "./react-native": {
-      "import": "./dist/react-native.js",
-      "types": "./dist/react-native.d.ts"
+      "types": "./dist/react-native.d.ts",
+      "react-native": "./src/react-native.tsx",
+      "require": "./dist/cjs/react-native.js",
+      "import": "./dist/react-native.js"
     },
     "./vue": {
       "import": "./dist/vue.js",
@@ -20,7 +23,8 @@
   },
   "workspaces": [
     "demos/**",
-    "vue-web/**",
+    "vue-example/**",
+    "rn-expo-example/**",
     "./**"
   ],
   "devDependencies": {
@@ -28,9 +32,9 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-vue": "^6.0.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-native": "^0.83.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vue": "^3.5.27",
@@ -54,11 +58,12 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && bun run build:vue && bun build.ts && bun build-rn.ts && tsc --emitDeclarationOnly",
+    "build": "rm -rf dist && bun run build:vue && bun build.ts && bun build-rn.ts&& bun build-rn-cjs.ts && tsc --emitDeclarationOnly",
     "build:vue": "vite build && vue-tsc --declaration --emitDeclarationOnly"
   },
   "files": [
-    "./dist",
+    "src",
+    "dist",
     "package.json",
     "LICENSE",
     "README.md"

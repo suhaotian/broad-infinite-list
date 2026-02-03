@@ -21,3 +21,6 @@ jobs:
 
       - name: Run demos
         run: cd demos && bun i && bun run build
+
+      - name: Run vue example
+        run: cd demos && bun i && bun run build
