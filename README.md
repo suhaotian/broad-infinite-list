@@ -30,7 +30,7 @@ npm install broad-infinite-list
 ## Quick Start
 
 > [!TIP]
-> Copy & Paste
+> Copy and paste the demo code, then run it.
 
 ```tsx
 "use client";
