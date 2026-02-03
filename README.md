@@ -154,6 +154,14 @@ const Spinner = () => (
 export default MyList;
 ```
 
+## Development
+
+This project use bun, but in `rn-expo-example/` use pnpm.
+
+```sh
+bun install && bun run build
+```
+
 ## Support
 
 If you find this project helpful, consider [buying me a coffee](https://github.com/suhaotian/broad-infinite-list/stargazers).
