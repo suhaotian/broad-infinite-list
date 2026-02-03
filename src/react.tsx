@@ -8,6 +8,7 @@ import {
   type RefObject,
   useMemo,
 } from "react";
+import { waitForMutation } from './utils';
 
 export interface BidirectionalListRef {
   /** Reference to the scrollable container element */
@@ -64,7 +65,7 @@ export type LoadDirection = "up" | "down";
 const LOAD_COOLDOWN_MS = 150;
 const RAF = requestAnimationFrame;
 
-export function BidirectionalList<T>({
+export default function BidirectionalList<T>({
   items,
   itemKey,
   renderItem,
@@ -388,39 +389,4 @@ export function BidirectionalList<T>({
       {items.length === 0 && !isUpLoading && !isDownLoading && emptyState}
     </div>
   );
-}
-
-/**
- * Waits for a DOM mutation on the list wrapper, then runs the callback.
- * Resolves immediately if the target key is already present and stable.
- * Timeout guard prevents hanging if the mutation never fires.
- */
-export function waitForMutation(
-  wrapper: HTMLDivElement,
-  callback: () => void,
-  timeoutMs: number = 300
-) {
-  let settled = false;
-
-  const clean = () => {
-    settled = true;
-    observer.disconnect();
-    clearTimeout(guard);
-  };
-
-  const settle = (): void => {
-    if (settled) return;
-    clean();
-    callback();
-  };
-
-  const guard = setTimeout(settle, timeoutMs); // fallback: don't hang forever
-
-  const observer = new MutationObserver(() => {
-    settle();
-  });
-
-  observer.observe(wrapper, { childList: true, subtree: true });
-
-  return clean;
 }

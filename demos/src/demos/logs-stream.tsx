@@ -1,5 +1,4 @@
-import {
-  BidirectionalList,
+import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
 } from "broad-infinite-list/react";

@@ -51,6 +51,7 @@ import {
   type Ref,
   type CSSProperties,
 } from "vue";
+import { waitForMutation } from './utils';
 
 export interface BidirectionalListRef {
   scrollViewRef: Ref<HTMLElement | null>;
@@ -59,6 +60,7 @@ export interface BidirectionalListRef {
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
 }
+
 
 /**
  * Slot types for the BidirectionalList component.
@@ -480,45 +482,6 @@ const containerStyles = computed<CSSProperties>(() => {
   return props.useWindow ? {} : { height: "100%", overflowY: "auto" };
 });
 
-/**
- * Waits for a DOM mutation on the wrapper element, then runs the callback.
- * Used to ensure Vue has flushed its DOM updates before measuring element positions.
- * Includes a timeout guard to prevent hanging if mutation never fires.
- * 
- * @param wrapper - The element to observe for mutations
- * @param callback - Function to call after mutation is detected
- * @param timeoutMs - Maximum time to wait before giving up (default: 300ms)
- * @returns Cleanup function to stop observing
- */
-function waitForMutation(
-  wrapper: HTMLDivElement,
-  callback: () => void,
-  timeoutMs: number = 300
-) {
-  let settled = false;
-
-  const clean = () => {
-    settled = true;
-    observer.disconnect();
-    clearTimeout(guard);
-  };
-
-  const settle = (): void => {
-    if (settled) return;
-    clean();
-    callback();
-  };
-
-  const guard = setTimeout(settle, timeoutMs);
-
-  const observer = new MutationObserver(() => {
-    settle();
-  });
-
-  observer.observe(wrapper, { childList: true, subtree: true });
-
-  return clean;
-}
 </script>
 
 <!--

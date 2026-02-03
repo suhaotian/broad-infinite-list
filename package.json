@@ -14,12 +14,13 @@
       "types": "./dist/react-native.d.ts"
     },
     "./vue": {
-      "import": "./dist/index.js",
+      "import": "./dist/vue.js",
       "types": "./dist/index.vue.d.ts"
     }
   },
   "workspaces": [
     "demos/**",
+    "vue-web/**",
     "./**"
   ],
   "devDependencies": {

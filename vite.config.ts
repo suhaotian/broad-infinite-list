@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.vue'),
-      fileName: 'index',
+      fileName: 'vue',
       formats: ['es'],
     },
     rollupOptions: {

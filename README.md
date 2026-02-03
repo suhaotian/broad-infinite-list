@@ -35,8 +35,7 @@ npm install broad-infinite-list
 ```tsx
 "use client";
 import { useState, useRef } from "react";
-import {
-  BidirectionalList,
+import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
 } from "broad-infinite-list/react";

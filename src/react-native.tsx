@@ -45,7 +45,7 @@ export interface BidirectionalListRef {
   scrollToKey: (key: string, animated?: boolean) => void;
 }
 
-export interface BidirectionalListProps<T> {
+export default interface BidirectionalListProps<T> {
   /** Current array of items to display */
   items: T[];
   /** Function to extract a unique key from each item */
@@ -390,3 +390,4 @@ export function BidirectionalList<T>({
     </ScrollView>
   );
 }
+
