@@ -21,15 +21,17 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
-      - run: npm i
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
 
-      - uses: oven-sh/setup-bun@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
-        run: bun i
+        run: bun install
 
       - name: Run Build
         run: bun run build
@@ -56,11 +58,7 @@ jobs:
       - name: Verify package contents
         run: npm pack --dry-run
 
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to npm
-        run: npm publish --access public --no-git-checks --provenance --registry=https://registry.npmjs.org --tag=${{ steps.release-tag.outputs.npm_tag }}
+        run: npm publish --access public --no-git-checks --provenance --tag=${{ steps.release-tag.outputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
