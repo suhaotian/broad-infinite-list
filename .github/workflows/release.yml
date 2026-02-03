@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - name: Run bun
+        run: cd bun-example && bun install && bun index.ts && bun build index.ts > /tmp/tmp.js
+
+      - name: Install dependencies
+        run: bun i
+
+      - name: Build
+        run: bun run build
+
+      - name: Determine release tag
+        id: release-tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
+          if [[ "$TAG" =~ -alpha(\.|$) ]] || [[ "$TAG" =~ -beta(\.|$) ]]; then
+            echo "npm_tag=next" >> $GITHUB_OUTPUT
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "📦 Publishing as pre-release: $TAG (npm tag: next)"
+          else
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "📦 Publishing as stable release: $TAG (npm tag: latest)"
+          fi
+
+      - name: Prepare package
+        run: node scripts/purge-pkg-for-publish.mjs
+
+      - name: Verify package contents
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        run: npm publish --access public --no-git-checks --provenance --registry=https://registry.npmjs.org --tag=${{ steps.release-tag.outputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_ELEVATED }}

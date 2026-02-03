@@ -1,0 +1,23 @@
+name: Tests & Build
+
+on:
+  push:
+    paths-ignore:
+      - "**/*.md"
+  pull_request:
+
+jobs:
+  check:
+    name: Tests & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - name: Run bun
+        run: bun i && bun run build
+
+      - name: Run demos
+        run: cd demos && bun i && bun run build

@@ -9,7 +9,10 @@
       "types": "./dist/react.d.ts"
     }
   },
-  "workspaces": ["demos/**", "./**"],
+  "workspaces": [
+    "demos/**",
+    "./**"
+  ],
   "devDependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -23,5 +26,11 @@
   },
   "scripts": {
     "build": "rm -rf dist && bun build.ts && tsc --emitDeclarationOnly"
-  }
+  },
+  "files": [
+    "./dist",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ]
 }

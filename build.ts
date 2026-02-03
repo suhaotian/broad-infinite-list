@@ -3,7 +3,7 @@ Bun.build({
   outdir: "./dist",
   format: "esm",
   external: ["react", "react-dom"],
-  // minify: true,
+  minify: true,
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
