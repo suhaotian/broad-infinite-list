@@ -63,7 +63,7 @@ export interface BidirectionalListProps<T> {
 export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
-const RAF = requestAnimationFrame;
+const getRAF = () => requestAnimationFrame;
 
 export default function BidirectionalList<T>({
   items,
@@ -184,7 +184,7 @@ export default function BidirectionalList<T>({
         if (!el) {
           attempts++;
           if (attempts < maxAttempts) {
-            RAF(tryRestore);
+            getRAF()(tryRestore);
           } else {
             console.warn(
               `[BroadScrollList] Scroll restore failed: anchor "${anchorKey}" not found`
@@ -203,7 +203,7 @@ export default function BidirectionalList<T>({
         isAdjustingRef.current = false;
       };
 
-      RAF(tryRestore);
+      getRAF()(tryRestore);
     },
     [findElementByKey, getViewportTop, getScrollTop, setScrollTop]
   );
