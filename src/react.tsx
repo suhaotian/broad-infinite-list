@@ -63,7 +63,7 @@ export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
 const getRAF = () => requestAnimationFrame;
-const getRootEl = () => document.documentElement;
+const getRootEl = () => document.documentElement
 
 export default function BidirectionalList<T>({
   items,
@@ -336,25 +336,14 @@ export default function BidirectionalList<T>({
     const top = topSentinelRef.current;
     const bottom = bottomSentinelRef.current;
     if (!top || !bottom || disable) return;
-    const root: HTMLElement | null = useWindow
-      ? getRootEl()
+    const root: HTMLDivElement | null = useWindow
+      ? null
       : scrollViewRef.current;
     const obs = new IntersectionObserver(
-      (entries) => {
+      (entries: IntersectionObserverEntry[]) => {
         if (isAdjustingRef.current) return;
-
-        const rootRect = root?.getBoundingClientRect();
-        if (!rootRect) return;
-
-        const topMargin = threshold; // same as rootMargin top
-        const bottomMargin = threshold; // same as rootMargin bottom
-
-        const topBoundary = rootRect.top - topMargin;
-        const bottomBoundary = rootRect.bottom + bottomMargin;
-
         for (const e of entries) {
           if (!e.isIntersecting) continue;
-
           if (e.target === top) handleLoad("up");
           else if (e.target === bottom) handleLoad("down");
         }
@@ -365,7 +354,6 @@ export default function BidirectionalList<T>({
         threshold: 0,
       }
     );
-
     obs.observe(top);
     obs.observe(bottom);
     return () => obs.disconnect();
@@ -384,7 +372,7 @@ export default function BidirectionalList<T>({
     <div ref={scrollViewRef} style={containerStyles} className={className}>
       <div
         ref={topSentinelRef}
-        style={{ height: 10, marginBottom: -10, overflowAnchor: "none" }}
+        style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
       />
       {isUpLoading && spinnerRow}
       <div ref={listWrapperRef} className={listClassName}>

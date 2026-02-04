@@ -169,7 +169,7 @@ const isAdjustingRef = ref(false);
 /** Internal copy of items array for use during async operations */
 const itemsRef = ref<T[]>([]);
 /** Reference to document root element for window scroll mode */
-const getRootEl = () => document.documentElement;
+const rootEl = document.documentElement;
 /** IntersectionObserver instance for detecting when to load more items */
 const intersectionObserver = ref<IntersectionObserver | null>(null);
 
@@ -188,7 +188,7 @@ watch(
 /** Scroll to a specific pixel offset from top */
 const scrollTo = (top: number, behavior: ScrollBehavior = "smooth"): void => {
   if (props.useWindow) {
-    getRootEl().scrollTo({ top, behavior });
+    rootEl.scrollTo({ top, behavior });
   } else if (scrollViewRef.value) {
     scrollViewRef.value.scrollTo({ top, behavior });
   }
@@ -196,7 +196,7 @@ const scrollTo = (top: number, behavior: ScrollBehavior = "smooth"): void => {
 
 /** Scroll to an item by its key */
 const scrollToKey = (key: string, behavior?: ScrollBehavior): void => {
-  const containerEl = props.useWindow ? getRootEl() : scrollViewRef.value;
+  const containerEl = props.useWindow ? rootEl : scrollViewRef.value;
   const el = containerEl?.querySelector(`[data-item-key="${key}"]`);
   if (el) {
     el.scrollIntoView({ behavior, block: "start" });
@@ -210,7 +210,7 @@ const scrollToTop = (behavior?: ScrollBehavior): void => {
 
 /** Scroll to the bottom of the list */
 const scrollToBottom = (behavior?: ScrollBehavior): void => {
-  const container = props.useWindow ? getRootEl() : scrollViewRef.value;
+  const container = props.useWindow ? rootEl : scrollViewRef.value;
   if (container) {
     const height = container.scrollHeight;
     scrollTo(height, behavior);
@@ -222,7 +222,7 @@ const scrollToBottom = (behavior?: ScrollBehavior): void => {
  * This allows imperative control of scrolling from outside the component.
  */
 defineExpose<BidirectionalListRef>({
-  scrollViewRef: props.useWindow ? { value: getRootEl() } as typeof scrollViewRef : scrollViewRef,
+  scrollViewRef: props.useWindow ? { value: rootEl } as typeof scrollViewRef : scrollViewRef,
   scrollTo,
   scrollToKey,
   scrollToTop,
@@ -231,14 +231,14 @@ defineExpose<BidirectionalListRef>({
 
 /** Get current scroll position (works for both window and container scroll) */
 const getScrollTop = (): number => {
-  if (props.useWindow) return window.scrollY || getRootEl().scrollTop;
+  if (props.useWindow) return window.scrollY || rootEl.scrollTop;
   return scrollViewRef.value?.scrollTop ?? 0;
 };
 
 /** Set scroll position and notify callbacks */
 const setScrollTop = (value: number): void => {
   props.onScrollStart?.();
-  if (props.useWindow) getRootEl().scrollTop = value;
+  if (props.useWindow) rootEl.scrollTop = value;
   else if (scrollViewRef.value) scrollViewRef.value.scrollTop = value;
   props.onScrollEnd?.();
 };
@@ -506,7 +506,7 @@ const setupObserver = (): void => {
   const bottom = bottomSentinelRef.value;
   if (!top || !bottom || props.disable) return;
 
-  const root: HTMLElement | null = props.useWindow ? getRootEl() : scrollViewRef.value;
+  const root: HTMLElement | null = props.useWindow ? null : scrollViewRef.value;
   intersectionObserver.value = new IntersectionObserver(
     (entries: IntersectionObserverEntry[]) => {
       if (isAdjustingRef.value) return;
@@ -578,7 +578,7 @@ const containerStyles = computed<CSSProperties>(() => {
   <div ref="scrollViewRef" :style="containerStyles" :class="props.className">
     <div
       ref="topSentinelRef"
-      :style="{ height: '10px', marginBottom: '-10px', overflowAnchor: 'none' }"
+      :style="{ height: '1px', marginBottom: '-1px', overflowAnchor: 'none' }"
     />
     <slot v-if="isUpLoading" name="spinner">
       <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>

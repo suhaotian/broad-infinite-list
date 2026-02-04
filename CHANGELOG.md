@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.2
+
+- Revert v1.1.1: occur scroll bugs
+
 ## v1.1.1
 
 - Minor update
@@ -8,7 +12,6 @@
 
 - Prop `viewSize` to `viewCount`
 - Update README
-
 
 ## v1.0.4
 
