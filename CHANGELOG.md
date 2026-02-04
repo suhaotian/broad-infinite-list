@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.1.1
+
+- Minor update
 
 ## v1.1.0
 
