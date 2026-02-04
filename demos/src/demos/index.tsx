@@ -76,7 +76,7 @@ export default function Demos() {
         <main className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="md:absolute md:-top-12 md:right-0 mb-6 md:mb-0">
             <a
-              href={`https://github.com/suhaotian/broad-infinite-list/blob/main/demos/${sourceFiles[tab]}`}
+              href={`https://github.com/suhaotian/broad-infinite-list/blob/main/demos/src/demos/${sourceFiles[tab]}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter text-sky-400 hover:text-sky-600 transition-colors">
@@ -121,12 +121,12 @@ export default function Demos() {
               href="https://npmjs.com/suhaotian/xior"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 text-sm font-bold text-sky-400 hover:text-sky-600 transition-colors">
+              className="flex items-center gap-2 text-sm font-bold text-sky-500 hover:text-sky-700 transition-colors">
               Xior
             </a>
             <a
               href="https://github.com/tsdk-monorepo/tsdk"
-              className="flex items-center gap-2 text-sm font-bold text-sky-400 hover:text-sky-600 transition-colors">
+              className="flex items-center gap-2 text-sm font-bold text-amber-500 hover:text-amber-700 transition-colors">
               Tsdk
             </a>
           </div>

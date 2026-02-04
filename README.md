@@ -14,6 +14,7 @@
 - Chat Messages List [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
 - News feed [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
 - Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
+- Vue Chat [Demo](https://suhaotian.github.io/broad-infinite-list/vue?demo=chat)
 
 **How It Works**
 

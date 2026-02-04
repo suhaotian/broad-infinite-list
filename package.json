@@ -83,8 +83,10 @@
     "large list",
     "huge list",
     "performance",
+    "react-native",
+    "expo",
     "vue",
-    "react-native"
+    "vue3"
   ],
   "author": {
     "name": "@suhaotian",

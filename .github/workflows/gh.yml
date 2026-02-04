@@ -37,8 +37,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Run build
         run: bun i && bun run build
-      - name: Run demos
+      - name: Run build demos
         run: cd demos && bun i && bun run build
+      - name: Run build vue-example
+        run: cd vue-example && npm i && npm run build && mkdir -p vue && mv dist/* vue && mv public/* vue
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -46,7 +48,9 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
-          path: './demos/dist'
+        path: |
+          ./demos/dist/*
+          ./vue-example/vue
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

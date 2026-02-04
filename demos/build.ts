@@ -144,6 +144,7 @@ const result = await Bun.build({
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
   ...cliConfig,
+  publicPath: '/broad-infinite-list/',
 });
 
 const end = performance.now();
