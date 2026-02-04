@@ -144,7 +144,7 @@ export function ChatDemo() {
           hasPrevious={hasPrevious}
           hasNext={hasNext}
           viewCount={VIEW_COUNT}
-          threshold={10}
+          threshold={100}
           onLoadMore={handleLoadMore}
           onItemsChange={setMessages}
           spinnerRow={
