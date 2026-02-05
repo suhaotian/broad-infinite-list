@@ -6,7 +6,15 @@
   "scripts": {
     "dev": "PORT=3002 bun --hot src/index.ts",
     "start": "NODE_ENV=production PORT=3002 bun src/index.ts",
-    "build": "bun run build.ts"
+    "build": "bun run build.ts",
+    "test:e2e": "bun playwright test",
+    "test:e2e:ui": "bun playwright test --ui",
+    "test:e2e:headed": "bun playwright test --headed",
+    "test:e2e:debug": "bun playwright test --debug",
+    "test:e2e:chromium": "bun playwright test --project=chromium",
+    "test:e2e:firefox": "bun playwright test --project=firefox",
+    "test:e2e:webkit": "bun playwright test --project=webkit",
+    "test:report": "bun playwright show-report"
   },
   "dependencies": {
     "bun-plugin-tailwind": "^0.1.2",
@@ -19,6 +27,7 @@
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@playwright/test": "^1.58.1"
   }
 }

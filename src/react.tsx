@@ -63,7 +63,7 @@ export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
 const getRAF = () => requestAnimationFrame;
-const getRootEl = () => document.documentElement
+const getRootEl = () => document.documentElement;
 
 export default function BidirectionalList<T>({
   items,
@@ -150,7 +150,9 @@ export default function BidirectionalList<T>({
     (value: number): void => {
       onScrollStart?.();
       if (useWindow) getRootEl().scrollTop = value;
-      else if (scrollViewRef.current) scrollViewRef.current.scrollTop = value;
+      // else if (scrollViewRef.current) scrollViewRef.current.scrollTop = value;
+      else if (scrollViewRef.current)
+        scrollViewRef.current.scrollTo({ top: value, behavior: "auto" });
       onScrollEnd?.();
     },
     [useWindow, onScrollStart, onScrollEnd]
@@ -336,6 +338,7 @@ export default function BidirectionalList<T>({
     const top = topSentinelRef.current;
     const bottom = bottomSentinelRef.current;
     if (!top || !bottom || disable) return;
+    if (!hasNext && !hasPrevious) return;
     const root: HTMLDivElement | null = useWindow
       ? null
       : scrollViewRef.current;
@@ -357,7 +360,7 @@ export default function BidirectionalList<T>({
     obs.observe(top);
     obs.observe(bottom);
     return () => obs.disconnect();
-  }, [threshold, handleLoad, useWindow, disable]);
+  }, [threshold, handleLoad, useWindow, disable, hasNext, hasPrevious]);
 
   /**
    * overflow-anchor: auto (default) handles up-load pinning natively.

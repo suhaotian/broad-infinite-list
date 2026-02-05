@@ -1,0 +1,21 @@
+name: E2E Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Run build
+        run: bun i && bun run build
+
+      - run: cd demos && bun i
+      - run: cd demos && bunx playwright install --with-deps
+      - run: cd demos && bun test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/

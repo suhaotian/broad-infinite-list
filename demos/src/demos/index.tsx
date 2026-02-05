@@ -2,14 +2,16 @@ import { useState } from "react";
 import { NewsFeedDemo } from "./news-feed";
 import { ChatDemo } from "./chat";
 import { LogsDemo } from "./logs-stream";
-import { Github, ExternalLink, Package, HandHelping } from "lucide-react"; // Assuming Lucide for icons
+import { Github, ExternalLink, Package, HandHelping } from "lucide-react"; 
+import E2EDemo from './e2e';
+
 
 window.onerror = (e) => {
   alert(e);
 };
 
 export default function Demos() {
-  const [tab, setTab] = useState<"news" | "logs" | "chat">(() => {
+  const [tab, setTab] = useState<"news" | "logs" | "chat" | "e2e">(() => {
     return typeof document !== "undefined"
       ? ((new URL(location.href).searchParams?.get("demo") || "chat") as "chat")
       : "chat";
@@ -37,6 +39,9 @@ export default function Demos() {
       </a>
     </>
   );
+  if (tab === 'e2e') {
+    return <E2EDemo />
+  }
   return (
     <div className="min-h-screen min-h-[100dvh]! bg-slate-50 font-sans selection:bg-sky-100 text-slate-900">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
