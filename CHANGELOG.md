@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.3
+
+- Add e2e tests
+
 ## v1.1.2
 
 - Revert v1.1.1: occur scroll bugs
