@@ -12,7 +12,8 @@ jobs:
         run: bun i && bun run build
 
       - run: cd demos && bun i
-      - run: cd demos && bunx playwright install --with-deps
+      # - run: cd demos && bunx playwright install --with-deps
+      - run: cd demos && bunx playwright install chromium
       - run: cd demos && bun test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
