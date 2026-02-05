@@ -11,7 +11,7 @@
     "test:e2e:ui": "bun playwright test --ui",
     "test:e2e:headed": "bun playwright test --headed",
     "test:e2e:debug": "bun playwright test --debug",
-    "test:e2e:chromium": "bun playwright test --project=chromium",
+    "test:e2e:chromium": "bun playwright test --project=chromium --ui",
     "test:e2e:firefox": "bun playwright test --project=firefox",
     "test:e2e:webkit": "bun playwright test --project=webkit",
     "test:report": "bun playwright show-report"

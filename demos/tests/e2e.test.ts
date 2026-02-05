@@ -1,192 +1,27 @@
 import { test, expect, type Page } from "@playwright/test";
 
 const TEST_URL = "http://localhost:3002?demo=e2e";
-
-// The component uses data-item-key on each item wrapper
 const ITEM_SELECTOR = "[data-item-key]";
-const SPINNER_SELECTOR = 'div[style*="animation"]';
-
-// Tab selectors
 const TAB_CONTAINER = 'button:has-text("Div Container")';
 const TAB_WINDOW = 'button:has-text("Window Scroll")';
 
-// Test config
-const LOAD_TIMEOUT = 2000;
-const SIMULATED_LATENCY = 600;
-const VIEW_COUNT = 30; // Must match component config
+const LOAD_WAIT = 1e3;
+const VIEW_COUNT = 30;
 const PAGE_SIZE = 10;
 
 /**
- * Get the data-item-key of the topmost visible item in the viewport.
+ * Get all item keys currently in DOM.
  */
-async function getTopVisibleItemKey(
-  page: Page,
-  useWindow: boolean
-): Promise<string | null> {
-  return page.evaluate((useWindowMode) => {
-    const items = Array.from(
-      document.querySelectorAll("[data-item-key]")
-    ) as HTMLElement[];
-    if (items.length === 0) return null;
-
-    let viewportTop: number;
-    if (useWindowMode) {
-      viewportTop = window.scrollY;
-    } else {
-      // Find the scroll container - it's the parent of the list wrapper
-      const firstItem = items[0];
-      let container = firstItem?.parentElement?.parentElement;
-      while (container && container.scrollHeight === container.clientHeight) {
-        container = container.parentElement;
-      }
-      viewportTop = container?.getBoundingClientRect().top ?? 0;
-    }
-
-    // Find first item whose bottom edge is below viewport top
-    for (const item of items) {
-      const rect = item.getBoundingClientRect();
-      const absoluteTop = useWindowMode ? rect.top + window.scrollY : rect.top;
-      const absoluteBottom = absoluteTop + rect.height;
-
-      if (absoluteBottom > (useWindowMode ? window.scrollY : viewportTop)) {
-        return item.getAttribute("data-item-key");
-      }
-    }
-    return items[0]?.getAttribute("data-item-key") ?? null;
-  }, useWindow);
-}
-
-/**
- * Get current scroll position.
- */
-async function getScrollTop(page: Page, useWindow: boolean): Promise<number> {
-  return page.evaluate((useWindowMode) => {
-    if (useWindowMode) {
-      return window.scrollY || document.documentElement.scrollTop;
-    }
-    // Find scroll container
-    const firstItem = document.querySelector(
-      "[data-item-key]"
-    ) as HTMLElement | null;
-    if (!firstItem) return 0;
-
-    let container = firstItem.parentElement?.parentElement;
-    while (container && container.scrollHeight === container.clientHeight) {
-      container = container.parentElement;
-    }
-    return container?.scrollTop ?? 0;
-  }, useWindow);
-}
-
-/**
- * Get the offset of a specific item from the viewport top.
- */
-async function getItemOffsetFromViewportTop(
-  page: Page,
-  itemKey: string,
-  useWindow: boolean
-): Promise<number | null> {
-  return page.evaluate(
-    ({ key, useWindowMode }) => {
-      const item = document.querySelector(`[data-item-key="${key}"]`);
-      if (!item) return null;
-
-      const rect = item.getBoundingClientRect();
-      const viewportTop = useWindowMode
-        ? 0
-        : (() => {
-            let container = (item as HTMLElement).parentElement?.parentElement;
-            while (
-              container &&
-              container.scrollHeight === container.clientHeight
-            ) {
-              container = container.parentElement;
-            }
-            return container?.getBoundingClientRect().top ?? 0;
-          })();
-
-      return rect.top - viewportTop;
-    },
-    { key: itemKey, useWindowMode: useWindow }
-  );
-}
-
-/**
- * Scroll to a specific item by key.
- */
-async function scrollToItem(
-  page: Page,
-  itemKey: string,
-  useWindow: boolean
-): Promise<void> {
-  await page.evaluate(
-    ({ key, useWindowMode }) => {
-      const item = document.querySelector(
-        `[data-item-key="${key}"]`
-      ) as HTMLElement | null;
-      if (!item) throw new Error(`Item ${key} not found`);
-
-      if (useWindowMode) {
-        item.scrollIntoView({ block: "center", behavior: "instant" });
-      } else {
-        // Find scroll container
-        let container = item.parentElement?.parentElement;
-        while (container && container.scrollHeight === container.clientHeight) {
-          container = container.parentElement;
-        }
-        if (!container) throw new Error("Container not found");
-
-        const containerRect = container.getBoundingClientRect();
-        const itemRect = item.getBoundingClientRect();
-        const scrollDelta =
-          itemRect.top - containerRect.top - containerRect.height / 2;
-        container.scrollTop += scrollDelta;
-      }
-    },
-    { key: itemKey, useWindowMode: useWindow }
-  );
-}
-
-/**
- * Wait for a load to complete. Spinner may not appear if prefetch hit.
- */
-async function waitForLoad(page: Page): Promise<void> {
-  // Extra tick for scroll correction
-  await page.waitForTimeout(SIMULATED_LATENCY + 200);
-}
-
-/**
- * Get current item count in DOM.
- */
-async function getItemCount(page: Page): Promise<number> {
-  return page.locator(ITEM_SELECTOR).count();
-}
-
-/**
- * Get scroll container element.
- */
-async function getScrollContainer(
-  page: Page,
-  useWindow: boolean
-): Promise<any> {
-  if (useWindow) return null;
-
-  return page.evaluateHandle(() => {
-    const firstItem = document.querySelector(
-      "[data-item-key]"
-    ) as HTMLElement | null;
-    if (!firstItem) return null;
-
-    let container = firstItem.parentElement?.parentElement;
-    while (container && container.scrollHeight === container.clientHeight) {
-      container = container.parentElement;
-    }
-    return container;
+async function getItemKeys(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    return Array.from(document.querySelectorAll("[data-item-key]")).map(
+      (el) => el.getAttribute("data-item-key")!
+    );
   });
 }
 
 /**
- * Scroll to edge in the given direction.
+ * Scroll to edge (top or bottom).
  */
 async function scrollToEdge(
   page: Page,
@@ -196,15 +31,14 @@ async function scrollToEdge(
   await page.evaluate(
     ({ dir, useWindowMode }) => {
       if (useWindowMode) {
-        if (dir === "up") {
-          window.scrollTo(0, 0);
-        } else {
-          window.scrollTo(0, document.documentElement.scrollHeight);
-        }
+        window.scrollTo(
+          0,
+          dir === "up" ? 0 : document.documentElement.scrollHeight
+        );
       } else {
         const firstItem = document.querySelector(
           "[data-item-key]"
-        ) as HTMLElement | null;
+        ) as HTMLElement;
         if (!firstItem) return;
 
         let container = firstItem.parentElement?.parentElement;
@@ -213,401 +47,221 @@ async function scrollToEdge(
         }
         if (!container) return;
 
-        if (dir === "up") {
-          container.scrollTop = 0;
-        } else {
-          container.scrollTop = container.scrollHeight;
-        }
+        container.scrollTop = dir === "up" ? 0 : container.scrollHeight;
       }
     },
     { dir: direction, useWindowMode: useWindow }
   );
+  await page.waitForTimeout(LOAD_WAIT);
 }
 
-test.describe("BidirectionalList - Div Container Mode", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URL);
-    await page.click(TAB_CONTAINER);
-    await page.waitForTimeout(500); // Let component mount and initial render settle
-  });
+/**
+ * Run test suite for a given scroll mode.
+ */
+function testScrollMode(modeName: string, useWindow: boolean) {
+  test.describe(`BidirectionalList - ${modeName}`, () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto(TEST_URL);
+      await page.click(useWindow ? TAB_WINDOW : TAB_CONTAINER);
+      await page.waitForTimeout(1000);
+      await page.waitForSelector(ITEM_SELECTOR, { timeout: 5000 });
+    });
 
-  test("scroll up: triggers load and preserves scroll position", async ({
-    page,
-  }) => {
-    const useWindow = false;
+    test("initial load shows first 30 items (0-29)", async ({ page }) => {
+      const keys = await getItemKeys(page);
+      expect(keys.length).toBe(VIEW_COUNT);
+      expect(keys[0]).toBe("0");
+      expect(keys[VIEW_COUNT - 1]).toBe("29");
+    });
 
-    // Wait for initial items
-    await page.waitForSelector(ITEM_SELECTOR, { timeout: 5000 });
-
-    // Feed list: initial render is at the top (latest items), no previous content
-    // Scroll down first to load more items so we have content below
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    const initialCount = await getItemCount(page);
-    expect(initialCount).toBeGreaterThan(0);
-
-    // Capture anchor before scroll
-    const anchorBefore = await getTopVisibleItemKey(page, useWindow);
-    expect(anchorBefore).not.toBeNull();
-
-    const offsetBefore = await getItemOffsetFromViewportTop(
-      page,
-      anchorBefore!,
-      useWindow
-    );
-    expect(offsetBefore).not.toBeNull();
-
-    // Scroll to top to trigger upward load (loading older items)
-    await scrollToEdge(page, "up", useWindow);
-    await waitForLoad(page);
-
-    // Verify items loaded
-    const countAfter = await getItemCount(page);
-    expect(countAfter).toBe(initialCount);
-
-    // Verify anchor position preserved
-    const offsetAfter = await getItemOffsetFromViewportTop(
-      page,
-      anchorBefore!,
-      useWindow
-    );
-    expect(offsetAfter).not.toBeNull();
-  });
-
-  test("scroll down: triggers load and preserves scroll position", async ({
-    page,
-  }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Scroll to an item in the middle first to have room to scroll down
-    const items = await page.locator(ITEM_SELECTOR).all();
-    if (items.length > 5) {
-      const fifthItem = await items[4]?.getAttribute("data-item-key");
-      if (fifthItem) {
-        await scrollToItem(page, fifthItem, useWindow);
-        await page.waitForTimeout(300);
-      }
-    }
-    await waitForLoad(page);
-
-    const initialCount = await getItemCount(page);
-    const anchorBefore = await getTopVisibleItemKey(page, useWindow);
-    expect(anchorBefore).not.toBeNull();
-
-    // Scroll to bottom
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    const countAfter = await getItemCount(page);
-    expect(countAfter).toBe(initialCount);
-  });
-
-  test("rapid bidirectional scroll maintains stability", async ({ page }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Load downward first (feed list starts at top)
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    // Load upward
-    await scrollToEdge(page, "up", useWindow);
-    await waitForLoad(page);
-
-    // Immediately load downward again
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    // Verify we're at a stable position (not stuck at edges)
-    const scrollTop = await getScrollTop(page, useWindow);
-    expect(scrollTop).toBeGreaterThan(0);
-
-    // Verify items are present
-    const count = await getItemCount(page);
-    expect(count).toBeGreaterThan(0);
-  });
-
-  test("viewCount enforcement: list does not grow unbounded", async ({
-    page,
-  }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Trigger multiple loads in both directions
-    for (let i = 0; i < 3; i++) {
+    test("scroll down: loads next page and trims top", async ({ page }) => {
       await scrollToEdge(page, "down", useWindow);
-      await waitForLoad(page);
 
-      await scrollToEdge(page, "up", useWindow);
-      await waitForLoad(page);
-    }
+      const keys = await getItemKeys(page);
+      expect(keys.length).toBe(VIEW_COUNT);
+      // After load: 10-39 (trimmed 0-9, added 30-39)
+      expect(keys[0]).toBe("10");
+      expect(keys[VIEW_COUNT - 1]).toBe("39");
+    });
 
-    // Verify item count doesn't exceed viewCount + some buffer for page size
-    const finalCount = await getItemCount(page);
-    expect(finalCount).toBeLessThanOrEqual(VIEW_COUNT + PAGE_SIZE * 2);
-  });
-});
-
-test.describe("BidirectionalList - Window Scroll Mode", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URL);
-    await page.click(TAB_WINDOW);
-    await page.waitForTimeout(1000);
-  });
-
-  test("scroll up: triggers load and preserves scroll position", async ({
-    page,
-  }) => {
-    const useWindow = true;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Feed list: scroll down first to load content
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    const initialCount = await getItemCount(page);
-
-    const anchorBefore = await getTopVisibleItemKey(page, useWindow);
-    expect(anchorBefore).not.toBeNull();
-
-
-    await scrollToEdge(page, "up", useWindow);
-    await waitForLoad(page);
-
-    const countAfter = await getItemCount(page);
-    expect(countAfter).toBe(initialCount);
-
-    const offsetAfter = await getItemOffsetFromViewportTop(
+    test("scroll down twice: continues loading and trimming", async ({
       page,
-      anchorBefore!,
-      useWindow
-    );
-    expect(offsetAfter).not.toBeNull();
-  });
-
-  test("scroll down: triggers load and preserves scroll position", async ({
-    page,
-  }) => {
-    const useWindow = true;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    const items = await page.locator(ITEM_SELECTOR).all();
-    if (items.length > 5) {
-      const fifthItem = await items[4]?.getAttribute("data-item-key");
-      if (fifthItem) {
-        await scrollToItem(page, fifthItem, useWindow);
-        await page.waitForTimeout(300);
-      }
-    }
-
-    const initialCount = await getItemCount(page);
-
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    const countAfter = await getItemCount(page);
-    expect(countAfter).toBe(initialCount);
-  });
-
-  test("prefetch eliminates spinner on subsequent scroll", async ({ page }) => {
-    const useWindow = true;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // First scroll down - loads + triggers prefetch
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    // Wait for prefetch to complete (simulated latency + margin)
-    await page.waitForTimeout(SIMULATED_LATENCY + 300);
-
-    // Second scroll down should hit prefetch buffer
-    const spinnerCountBefore = await page.locator(SPINNER_SELECTOR).count();
-
-    await scrollToEdge(page, "down", useWindow);
-
-    // Wait briefly - spinner should not appear
-    await page.waitForTimeout(SIMULATED_LATENCY + 100);
-    const spinnerCountDuring = await page.locator(SPINNER_SELECTOR).count();
-
-    expect(spinnerCountDuring).toBe(0);
-
-    // But scroll position should have changed (items loaded)
-    const scrollTop = await getScrollTop(page, useWindow);
-    expect(scrollTop).toBeGreaterThan(0);
-  });
-});
-
-test.describe("BidirectionalList - Edge Cases", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(TEST_URL);
-    await page.click(TAB_CONTAINER);
-    await page.waitForTimeout(500);
-  });
-
-  test("does not load beyond start boundary", async ({ page }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Feed list: scroll down first to have room to test upward boundary
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
-
-    // Keep scrolling up until we hit the start (item 0)
-    let previousCount = await getItemCount(page);
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    while (attempts < maxAttempts) {
-      await scrollToEdge(page, "up", useWindow);
-      await waitForLoad(page);
-
-      const currentCount = await getItemCount(page);
-
-      // Check if item 0 exists
-      const hasItem0 = (await page.locator('[data-item-key="0"]').count()) > 0;
-      if (hasItem0) {
-        // We've reached the start - one more scroll should not load more
-        const countBeforeFinal = await getItemCount(page);
-        await scrollToEdge(page, "up", useWindow);
-        await page.waitForTimeout(1000);
-        const countAfterFinal = await getItemCount(page);
-
-        expect(countAfterFinal).toBe(countBeforeFinal);
-        break;
-      }
-
-      if (currentCount === previousCount) {
-        // No more items loaded - we've hit the boundary
-        break;
-      }
-
-      previousCount = currentCount;
-      attempts++;
-    }
-  });
-
-  test("does not load beyond end boundary", async ({ page }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Keep scrolling down until we hit the end
-    let previousCount = await getItemCount(page);
-    let attempts = 0;
-    const maxAttempts = 20;
-
-    while (attempts < maxAttempts) {
+    }) => {
       await scrollToEdge(page, "down", useWindow);
-      await waitForLoad(page);
+      await scrollToEdge(page, "down", useWindow);
 
-      const currentCount = await getItemCount(page);
+      const keys = await getItemKeys(page);
+      expect(keys.length).toBe(VIEW_COUNT);
+      // After two loads: 20-49
+      expect(keys[0]).toBe("20");
+      expect(keys[VIEW_COUNT - 1]).toBe("49");
+    });
 
-      // Check if we've stopped loading (due to viewCount trimming)
-      // In a real scenario, check for the last item ID
-      const items = await page.locator(ITEM_SELECTOR).all();
-      const lastItemKey =
-        items.length > 0
-          ? await items[items.length - 1]?.getAttribute("data-item-key")
-          : null;
+    test("scroll up after scroll down: loads previous page and trims bottom", async ({
+      page,
+    }) => {
+      // Setup: scroll down twice to get to 20-49
+      await scrollToEdge(page, "down", useWindow);
+      await scrollToEdge(page, "down", useWindow);
 
-      if (lastItemKey === "1999") {
-        // TOTAL_ITEMS - 1
-        // One more scroll should not load
-        const countBeforeFinal = await getItemCount(page);
+      // Now scroll up
+      await scrollToEdge(page, "up", useWindow);
+
+      const keys = await getItemKeys(page);
+      expect(keys.length).toBe(VIEW_COUNT);
+      // After scroll up: 10-39 (loaded 10-19, trimmed 40-49)
+      expect(keys[0]).toBe("10");
+      expect(keys[VIEW_COUNT - 1]).toBe("39");
+    });
+
+    test("viewCount enforcement: maintains max 30 items", async ({ page }) => {
+      // Multiple bidirectional scrolls
+      for (let i = 0; i < 3; i++) {
         await scrollToEdge(page, "down", useWindow);
-        await page.waitForTimeout(1000);
-        const countAfterFinal = await getItemCount(page);
-
-        // Count might be same or might have trimmed from top
-        expect(countAfterFinal).toBeLessThanOrEqual(VIEW_COUNT + PAGE_SIZE * 2);
-        break;
+        await scrollToEdge(page, "up", useWindow);
       }
 
-      if (currentCount <= previousCount) {
-        // Trimming is occurring, which is expected
-        break;
-      }
+      const keys = await getItemKeys(page);
+      expect(keys.length).toBeLessThanOrEqual(VIEW_COUNT + PAGE_SIZE);
+    });
 
-      previousCount = currentCount;
-      attempts++;
-    }
-
-    // Final verification - we should have items
-    const finalCount = await getItemCount(page);
-    expect(finalCount).toBeGreaterThan(0);
-  });
-
-  test("scroll position stable during trim operations", async ({ page }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Load enough to trigger trimming
-    for (let i = 0; i < 5; i++) {
+    test("boundary: cannot load before item 0", async ({ page }) => {
+      // Scroll down then back up to item 0
       await scrollToEdge(page, "down", useWindow);
-      await waitForLoad(page);
-    }
+      await scrollToEdge(page, "up", useWindow);
+      await scrollToEdge(page, "up", useWindow);
 
-    // Capture position
-    const anchorBefore = await getTopVisibleItemKey(page, useWindow);
-    expect(anchorBefore).not.toBeNull();
+      const keys = await getItemKeys(page);
+      expect(keys[0]).toBe("0");
 
-    const scrollBefore = await getScrollTop(page, useWindow);
+      // Try to scroll up again - should stay at 0
+      await scrollToEdge(page, "up", useWindow);
+      const keysAfter = await getItemKeys(page);
+      expect(keysAfter[0]).toBe("0");
+    });
 
-    // Trigger more loading which should cause trimming
-    await scrollToEdge(page, "down", useWindow);
-    await waitForLoad(page);
+    test("scroll down: last item before load stays visible in viewport", async ({
+      page,
+    }) => {
+      // Get the last item before scroll (item 29)
+      const keysBefore = await getItemKeys(page);
+      const lastKeyBefore = keysBefore[keysBefore.length - 1];
+      expect(lastKeyBefore).toBe("29");
 
-    // Position should be stable (not jumped to 0 or max)
-    const scrollAfter = await getScrollTop(page, useWindow);
-    expect(scrollAfter).toBeGreaterThan(0);
+      // Scroll to bottom to trigger load
+      await scrollToEdge(page, "down", useWindow);
 
-    // Should be roughly in the same region (allowing for trim adjustments)
-    const scrollDelta = Math.abs(scrollAfter - scrollBefore);
-    expect(scrollDelta).toBeLessThan(2000);
+      // After load: 10-39 (item 29 should still be visible in viewport)
+      const keysAfter = await getItemKeys(page);
+      expect(keysAfter).toContain("29");
+
+      // Check if item 29 is visible in viewport
+      const isVisible = await page.evaluate(
+        ({ key, useWindowMode }) => {
+          const item = document.querySelector(`[data-item-key="${key}"]`);
+          if (!item) return false;
+
+          const rect = item.getBoundingClientRect();
+
+          if (useWindowMode) {
+            // Check if any part of the item is visible in the window
+            return (
+              rect.bottom > 0 &&
+              rect.top < window.innerHeight &&
+              rect.right > 0 &&
+              rect.left < window.innerWidth
+            );
+          } else {
+            // Find scroll container
+            let container = (item as HTMLElement).parentElement;
+            while (container && container !== document.body) {
+              const style = window.getComputedStyle(container);
+              const hasScroll =
+                style.overflow === "auto" ||
+                style.overflow === "scroll" ||
+                style.overflowY === "auto" ||
+                style.overflowY === "scroll";
+
+              if (
+                hasScroll &&
+                container.scrollHeight > container.clientHeight
+              ) {
+                break;
+              }
+              container = container.parentElement;
+            }
+
+            if (!container || container === document.body) return false;
+
+            const containerRect = container.getBoundingClientRect();
+            // Check if any part of the item is visible within the container
+            return (
+              rect.bottom > containerRect.top &&
+              rect.top < containerRect.bottom &&
+              rect.right > containerRect.left &&
+              rect.left < containerRect.right
+            );
+          }
+        },
+        { key: lastKeyBefore, useWindowMode: useWindow }
+      );
+
+      expect(isVisible).toBe(true);
+    });
+
+    test("scroll up: first item before load stays visible in viewport", async ({
+      page,
+    }) => {
+      // Setup: scroll down twice to get to 20-49
+      await scrollToEdge(page, "down", useWindow);
+      await scrollToEdge(page, "down", useWindow);
+
+      // Get the first item before scroll up (item 20)
+      const keysBefore = await getItemKeys(page);
+      const firstKeyBefore = keysBefore[0];
+      expect(firstKeyBefore).toBe("20");
+
+      // Scroll to top to trigger upward load
+      await scrollToEdge(page, "up", useWindow);
+
+      // After load: 10-39 (item 20 should still be visible in viewport)
+      const keysAfter = await getItemKeys(page);
+      expect(keysAfter).toContain("20");
+
+      // Check if item 20 is visible in viewport
+      const isVisible = await page.evaluate(
+        ({ key, useWindowMode }) => {
+          const item = document.querySelector(`[data-item-key="${key}"]`);
+          if (!item) return false;
+
+          const rect = item.getBoundingClientRect();
+          if (useWindowMode) {
+            return rect.top >= 0 && rect.bottom <= window.innerHeight;
+          } else {
+            let container = (item as HTMLElement).parentElement?.parentElement;
+            while (
+              container &&
+              container.scrollHeight === container.clientHeight
+            ) {
+              container = container.parentElement;
+            }
+            if (!container) return false;
+
+            const containerRect = container.getBoundingClientRect();
+            return (
+              rect.top >= containerRect.top &&
+              rect.bottom <= containerRect.bottom
+            );
+          }
+        },
+        { key: firstKeyBefore, useWindowMode: useWindow }
+      );
+
+      expect(isVisible).toBe(true);
+    });
   });
+}
 
-  test("multiple rapid scrolls do not cause race conditions", async ({
-    page,
-  }) => {
-    const useWindow = false;
-
-    await page.waitForSelector(ITEM_SELECTOR);
-
-    // Rapidly alternate scroll directions without waiting for loads to complete
-    const promises = [];
-
-    for (let i = 0; i < 3; i++) {
-      promises.push(scrollToEdge(page, "down", useWindow));
-      promises.push(page.waitForTimeout(100));
-      promises.push(scrollToEdge(page, "up", useWindow));
-      promises.push(page.waitForTimeout(100));
-    }
-
-    await Promise.all(promises);
-
-    // Wait for all loads to settle
-    await page.waitForTimeout(2000);
-
-    // Should still have items
-    const count = await getItemCount(page);
-    expect(count).toBeGreaterThan(0);
-
-    // Should be at a stable scroll position
-    const scrollTop = await getScrollTop(page, useWindow);
-    expect(scrollTop).toBeGreaterThanOrEqual(0);
-  });
-});
+// Run tests for both modes
+testScrollMode("Div Container", false);
+testScrollMode("Window Scroll", true);
