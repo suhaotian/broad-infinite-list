@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.4
+
+- Fix Vue scroll up restore scroll behaviour
+
 ## v1.1.3
 
 - Add e2e tests

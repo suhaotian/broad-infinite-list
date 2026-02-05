@@ -150,9 +150,7 @@ export default function BidirectionalList<T>({
     (value: number): void => {
       onScrollStart?.();
       if (useWindow) getRootEl().scrollTop = value;
-      // else if (scrollViewRef.current) scrollViewRef.current.scrollTop = value;
-      else if (scrollViewRef.current)
-        scrollViewRef.current.scrollTo({ top: value, behavior: "auto" });
+      else if (scrollViewRef.current) scrollViewRef.current.scrollTop = value;
       onScrollEnd?.();
     },
     [useWindow, onScrollStart, onScrollEnd]

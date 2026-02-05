@@ -41,7 +41,12 @@ const inputValue = ref('');
 const listRef = ref<BidirectionalListRef>();
 
   const toggleUseWindow = () => {
+    disable.value = true;
     useWindowRef.value = !useWindowRef.value;
+    nextTick().then(() => {
+      listRef.value?.scrollToBottom('instant');
+      disable.value = false;
+    })
   }
 
 
