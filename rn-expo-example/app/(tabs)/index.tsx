@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -46,6 +46,7 @@ export default function ChatDemoScreen() {
   const [disable, setDisable] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [inputValue, setInputValue] = useState("");
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
@@ -53,13 +54,15 @@ export default function ChatDemoScreen() {
     );
     const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(initialMessages);
-    if (initialMessages.length > 0) {
-      setTimeout(() => {
-        listRef.current?.scrollToBottom?.(false);
-        setDisable(false);
-      }, 50);
-    }
+    setLoaded(true);
   }, []);
+
+  useLayoutEffect(() => {
+    setTimeout(() => {
+      listRef.current?.scrollToBottom?.(false);
+      setDisable(false);
+    });
+  }, [loaded]);
 
   const handleLoadMore: BidirectionalListProps<ChatMessage>["onLoadMore"] =
     async (direction, refItem) => {

@@ -1,13 +1,13 @@
 import {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useImperativeHandle,
   type ForwardedRef,
   type RefObject,
 } from "react";
-import { waitForMutation } from "./utils";
 
 export interface BidirectionalListRef {
   /** Reference to the scrollable container element */
@@ -62,8 +62,26 @@ export interface BidirectionalListProps<T> {
 export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
-const getRAF = () => requestAnimationFrame;
+const MIN_SCROLL_DELTA = 1;
 const getRootEl = () => document.documentElement;
+
+/**
+ * Compute scroll delta needed to keep an anchor element at its previous
+ * visual position. Returns 0 if anchor not found or delta is negligible.
+ */
+function computeAnchorDelta(
+  anchorKey: string | null,
+  previousOffset: number,
+  findElementByKey: (key: string) => Element | null,
+  getViewportTop: () => number
+): number {
+  if (!anchorKey) return 0;
+  const el = findElementByKey(anchorKey);
+  if (!el) return 0;
+  const currentOffset = el.getBoundingClientRect().top - getViewportTop();
+  const delta = currentOffset - previousOffset;
+  return Math.abs(delta) > MIN_SCROLL_DELTA ? delta : 0;
+}
 
 export default function BidirectionalList<T>({
   items,
@@ -93,53 +111,44 @@ export default function BidirectionalList<T>({
   const listWrapperRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const bottomSentinelRef = useRef<HTMLDivElement>(null);
+  const spinnerWrapperRef = useRef<HTMLDivElement>(null);
+
   const loadingLockRef = useRef<Record<LoadDirection, boolean>>({
     up: false,
     down: false,
   });
-  const [isUpLoading, setIsUpLoading] = useState<boolean>(false);
-  const [isDownLoading, setIsDownLoading] = useState<boolean>(false);
-  const isAdjustingRef = useRef<boolean>(false);
+
+  const isAdjustingRef = useRef(false);
   const itemsRef = useRef<T[]>(items);
   itemsRef.current = items;
 
+  /**
+   * Monotonic counter incremented on every commit that needs scroll restoration.
+   * items.length is unreliable — if a load returns the same count as trimmed,
+   * the length stays the same and the layout effect won't fire.
+   */
+  const [commitId, setCommitId] = useState(0);
+
+  // Scroll-restoration state for prepend (up-load)
+  const anchorKeyRef = useRef<string | null>(null);
+  const spinnerHeightRef = useRef<number>(0);
+  const isPrependRef = useRef(false);
+
+  // Scroll-restoration state for down-trim
+  const isDownTrimRef = useRef(false);
+  const downTrimAnchorKeyRef = useRef<string | null>(null);
+  const downTrimAnchorOffsetRef = useRef<number>(0);
+
+  const [isUpLoading, setIsUpLoading] = useState(false);
+  const [isDownLoading, setIsDownLoading] = useState(false);
+
   const scrollTo = useCallback(
     (top: number, behavior: ScrollBehavior = "smooth") => {
-      if (useWindow)
-        getRootEl().scrollTo({
-          top,
-          behavior,
-        });
-      else if (scrollViewRef.current)
-        scrollViewRef.current.scrollTo({
-          top,
-          behavior,
-        });
+      if (useWindow) getRootEl().scrollTo({ top, behavior });
+      else scrollViewRef.current?.scrollTo({ top, behavior });
     },
-    [scrollViewRef, useWindow]
+    [useWindow]
   );
-
-  useImperativeHandle(ref, () => ({
-    scrollViewRef: useWindow ? { current: getRootEl() } : scrollViewRef,
-    scrollTo,
-    scrollToKey(key, behavior) {
-      const containerEl = useWindow ? getRootEl() : scrollViewRef.current;
-      const el = containerEl?.querySelector(`[data-key="${key}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior, block: "start" });
-      }
-    },
-    scrollToTop(behavior) {
-      scrollTo(0, behavior);
-    },
-    scrollToBottom(behavior) {
-      const container = useWindow ? getRootEl() : scrollViewRef.current;
-      if (container) {
-        const height = container.scrollHeight;
-        scrollTo(height, behavior);
-      }
-    },
-  }));
 
   const getScrollTop = useCallback((): number => {
     if (useWindow) return window.scrollY || getRootEl().scrollTop;
@@ -161,155 +170,169 @@ export default function BidirectionalList<T>({
     return scrollViewRef.current?.getBoundingClientRect().top ?? 0;
   }, [useWindow]);
 
-  const findElementByKey = useCallback((key: string): Element | null => {
-    const wrapper = listWrapperRef.current;
-    if (!wrapper) return null;
-    return wrapper.querySelector(`[data-item-key="${key}"]`);
-  }, []);
+  const findElementByKey = useCallback(
+    (key: string): Element | null => {
+      const container = useWindow ? getRootEl() : scrollViewRef.current;
+      if (!container) return null;
+      return container.querySelector(`[data-item-key="${key}"]`);
+    },
+    [useWindow]
+  );
+
+  useImperativeHandle(ref, () => ({
+    scrollViewRef: useWindow
+      ? ({ current: getRootEl() } as RefObject<HTMLElement>)
+      : scrollViewRef,
+    scrollTo,
+    scrollToKey(key, behavior) {
+      const el = findElementByKey(key);
+      if (el) el.scrollIntoView({ behavior, block: "start" });
+    },
+    scrollToTop(behavior) {
+      scrollTo(0, behavior);
+    },
+    scrollToBottom(behavior) {
+      const container = useWindow ? getRootEl() : scrollViewRef.current;
+      if (container) scrollTo(container.scrollHeight, behavior);
+    },
+  }));
 
   /**
-   * Restores scroll so the anchor stays visually pinned after items above it
-   * are trimmed. Only used for down-load trim. Retries once if the anchor
-   * isn't in the DOM yet (parent state update hasn't flushed).
+   * When the up-spinner renders, measure its height and snapshot the anchor key
+   * (first visible item). Runs synchronously after DOM insert, before paint.
    */
-  const restoreScrollToAnchor = useCallback(
-    (anchorKey: string, anchorOffsetBefore: number): void => {
-      let attempts = 0;
-      const maxAttempts = 10;
+  useLayoutEffect(() => {
+    if (!isUpLoading) return;
 
-      const tryRestore = (): void => {
-        const el = findElementByKey(anchorKey);
+    if (spinnerWrapperRef.current) {
+      spinnerHeightRef.current =
+        spinnerWrapperRef.current.getBoundingClientRect().height;
+    }
 
-        if (!el) {
-          attempts++;
-          if (attempts < maxAttempts) {
-            getRAF()(tryRestore);
-          } else {
-            isAdjustingRef.current = false;
-          }
-          return;
-        }
+    const currentItems = itemsRef.current;
+    if (currentItems.length > 0) {
+      anchorKeyRef.current = itemKey(currentItems[0] as T);
+    }
+  }, [isUpLoading, itemKey]);
 
-        const anchorOffsetAfter =
-          el.getBoundingClientRect().top - getViewportTop();
-        const delta = anchorOffsetAfter - anchorOffsetBefore;
-        if (Math.abs(delta) > 1) {
-          setScrollTop(getScrollTop() + delta);
-        }
-        isAdjustingRef.current = false;
-      };
+  /**
+   * After items are committed (prepend or down-trim), restore scroll position
+   * so the anchor item stays visually pinned.
+   *
+   * Both cases share the same pattern: find anchor element, compute delta,
+   * apply scroll correction, reset refs.
+   */
+  useLayoutEffect(() => {
+    if (isPrependRef.current) {
+      isPrependRef.current = false;
 
-      getRAF()(tryRestore);
-    },
-    [findElementByKey, getViewportTop, getScrollTop, setScrollTop]
-  );
+      // For prepend: the previous offset is the spinner height (anchor was
+      // visually that far below the scroll position before the commit).
+      const delta = computeAnchorDelta(
+        anchorKeyRef.current,
+        spinnerHeightRef.current,
+        findElementByKey,
+        getViewportTop
+      );
+      if (delta !== 0) setScrollTop(getScrollTop() + delta);
+
+      anchorKeyRef.current = null;
+      spinnerHeightRef.current = 0;
+      isAdjustingRef.current = false;
+      return;
+    }
+
+    if (isDownTrimRef.current) {
+      isDownTrimRef.current = false;
+
+      const delta = computeAnchorDelta(
+        downTrimAnchorKeyRef.current,
+        downTrimAnchorOffsetRef.current,
+        findElementByKey,
+        getViewportTop
+      );
+      if (delta !== 0) setScrollTop(getScrollTop() + delta);
+
+      downTrimAnchorKeyRef.current = null;
+      downTrimAnchorOffsetRef.current = 0;
+      isAdjustingRef.current = false;
+      return;
+    }
+  }, [commitId, findElementByKey, getViewportTop, getScrollTop, setScrollTop]);
 
   const handleLoad = useCallback(
     async (direction: LoadDirection): Promise<void> => {
       if (disable) return;
-      if (direction === "up" && !hasPrevious) return;
-      if (direction === "down" && !hasNext) return;
+      const isUp = direction === "up";
+
+      if (isUp && !hasPrevious) return;
+      if (!isUp && !hasNext) return;
       if (loadingLockRef.current[direction]) return;
 
       const currentItems = itemsRef.current;
       if (currentItems.length === 0) return;
 
-      /** Acquire lock and show spinner. */
       loadingLockRef.current[direction] = true;
       isAdjustingRef.current = true;
-      if (direction === "up") setIsUpLoading(true);
+      if (isUp) setIsUpLoading(true);
       else setIsDownLoading(true);
 
       try {
-        const ref: T =
-          direction === "up"
-            ? (currentItems[0] as T)
-            : (currentItems[currentItems.length - 1] as T);
-        const newItems: T[] = await onLoadMore(direction, ref);
+        const refItem: T = isUp
+          ? (currentItems[0] as T)
+          : (currentItems[currentItems.length - 1] as T);
+
+        const newItems: T[] = await onLoadMore(direction, refItem);
 
         if (newItems.length === 0) {
-          if (direction === "up") setIsUpLoading(false);
+          if (isUp) setIsUpLoading(false);
           else setIsDownLoading(false);
           isAdjustingRef.current = false;
           return;
         }
 
-        if (direction === "up") {
-          /**
-           * Anchor = the item that is currently first in the list. It is
-           * guaranteed to be in the DOM right now (it was rendered before the
-           * await). We snapshot its viewport-relative offset so we can restore
-           * scroll after the prepend, because overflow-anchor is unreliable
-           * inside iframes (e.g. artifact renderers).
-           */
-          const anchorKey: string = itemKey(currentItems[0] as T);
-          const anchorEl: Element | null = findElementByKey(anchorKey);
-          const anchorOffsetBefore: number = anchorEl
-            ? anchorEl.getBoundingClientRect().top - getViewportTop()
-            : 0;
-
+        if (isUp) {
           let nextItems: T[] = [...newItems, ...currentItems];
           if (nextItems.length > viewCount) {
-            /**
-             * Trim from the bottom (opposite end from prepend).
-             * Removed items are below the viewport — no scroll effect.
-             */
             nextItems = nextItems.slice(0, viewCount);
           }
 
-          /** Commit new items and hide the up-spinner. */
+          isPrependRef.current = true;
           onItemsChange?.(nextItems);
           setIsUpLoading(false);
-
-          /**
-           * Restore after paint so the prepended + trimmed DOM is measured.
-           * The anchor element (old first item) is still in nextItems — it
-           * survived the prepend and any bottom-trim — so it will be in the
-           * DOM when the rAF fires.
-           */
-          if (listWrapperRef.current) {
-            waitForMutation(listWrapperRef.current, () => {
-              restoreScrollToAnchor(anchorKey, anchorOffsetBefore);
-            });
-          } else {
-            isAdjustingRef.current = false;
-          }
+          setCommitId((c) => c + 1);
         } else {
           let nextItems: T[] = [...currentItems, ...newItems];
-          let didTrim: boolean = false;
-          let anchorKey: string = "";
-          let anchorOffsetBefore: number = 0;
+          let didTrim = false;
 
           if (nextItems.length > viewCount) {
-            const countToRemove: number = nextItems.length - viewCount;
+            const countToRemove = nextItems.length - viewCount;
             nextItems = nextItems.slice(countToRemove);
             didTrim = true;
 
-            /**
-             * Anchor = first survivor after trim. It's in the DOM now (was in
-             * currentItems). Down-spinner is below it — safe to measure.
-             */
-            anchorKey = itemKey(nextItems[0] as T);
-            const anchorEl: Element | null = findElementByKey(anchorKey);
-            if (anchorEl)
-              anchorOffsetBefore =
+            // Snapshot anchor position before React commits the trim
+            const anchorKey = itemKey(nextItems[0] as T);
+            const anchorEl = findElementByKey(anchorKey);
+            if (anchorEl) {
+              downTrimAnchorKeyRef.current = anchorKey;
+              downTrimAnchorOffsetRef.current =
                 anchorEl.getBoundingClientRect().top - getViewportTop();
+            }
           }
 
-          /** Commit and hide spinner. */
+          if (didTrim) isDownTrimRef.current = true;
+
           onItemsChange?.(nextItems);
           setIsDownLoading(false);
 
-          if (didTrim && listWrapperRef.current) {
-            waitForMutation(listWrapperRef.current, () => {
-              restoreScrollToAnchor(anchorKey, anchorOffsetBefore);
-            });
+          if (didTrim) {
+            setCommitId((c) => c + 1);
           } else {
             isAdjustingRef.current = false;
           }
         }
       } catch {
-        if (direction === "up") setIsUpLoading(false);
+        if (isUp) setIsUpLoading(false);
         else setIsDownLoading(false);
         isAdjustingRef.current = false;
       } finally {
@@ -326,7 +349,6 @@ export default function BidirectionalList<T>({
       itemKey,
       findElementByKey,
       getViewportTop,
-      restoreScrollToAnchor,
       hasPrevious,
       hasNext,
     ]
@@ -337,9 +359,11 @@ export default function BidirectionalList<T>({
     const bottom = bottomSentinelRef.current;
     if (!top || !bottom || disable) return;
     if (!hasNext && !hasPrevious) return;
+
     const root: HTMLDivElement | null = useWindow
       ? null
       : scrollViewRef.current;
+
     const obs = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
         if (isAdjustingRef.current) return;
@@ -355,16 +379,12 @@ export default function BidirectionalList<T>({
         threshold: 0,
       }
     );
+
     obs.observe(top);
     obs.observe(bottom);
     return () => obs.disconnect();
   }, [threshold, handleLoad, useWindow, disable, hasNext, hasPrevious]);
 
-  /**
-   * overflow-anchor: auto (default) handles up-load pinning natively.
-   * Top sentinel has overflow-anchor:none so the browser skips it and anchors
-   * to the first real list item.
-   */
   const containerStyles: React.CSSProperties = useWindow
     ? {}
     : { height: "100%", overflowY: "auto" };
@@ -373,9 +393,9 @@ export default function BidirectionalList<T>({
     <div ref={scrollViewRef} style={containerStyles} className={className}>
       <div
         ref={topSentinelRef}
-        style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
+        style={{ height: 10, marginBottom: -10, overflowAnchor: "none" }}
       />
-      {isUpLoading && spinnerRow}
+      {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
       <div ref={listWrapperRef} className={listClassName}>
         {items.map((item: T) => (
           <div key={itemKey(item)} data-item-key={itemKey(item)}>
