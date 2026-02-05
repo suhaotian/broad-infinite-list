@@ -19,7 +19,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
 
   // Reporter to use
   reporter: [["html"], ["list"]],
@@ -70,7 +70,7 @@ export default defineConfig({
   // Run your local dev server before starting the tests
   webServer: {
     command: "bun run dev",
-    url: "http://localhost:3002",
+    url: "http://localhost:3002?demo=e2e",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

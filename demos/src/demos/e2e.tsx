@@ -67,11 +67,9 @@ function delay(ms: number): Promise<void> {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-function getInitialPage(center: number): DemoItem[] {
-  const start = 0;
-  const end = Math.min(TOTAL_ITEMS, start + PAGE_SIZE);
-  return Array.from({ length: end - start }, (_: unknown, i: number) =>
-    generateItem(start + i)
+function getInitialPage(count: number): DemoItem[] {
+  return Array.from({ length: count }, (_: unknown, i: number) =>
+    generateItem(i)
   );
 }
 
@@ -114,7 +112,7 @@ function computeBounds(items: DemoItem[]): {
 // =============================================================================
 
 function ListDemo({ useWindow }: { useWindow: boolean }): ReactNode {
-  const [items, setItems] = useState<DemoItem[]>(() => getInitialPage(100));
+  const [items, setItems] = useState<DemoItem[]>(() => getInitialPage(30));
   const { hasPrevious, hasNext } = computeBounds(items);
 
   // Stable callback — fetchPage is a module-level pure function so no deps.
@@ -326,7 +324,7 @@ export default function E2ETests(): ReactNode {
           <div
             key={activeTab}
             style={isWindowMode ? {} : { flex: 1, minHeight: 0 }}>
-            <ListDemo useWindow={isWindowMode} />
+            <ListDemo useWindow={isWindowMode} key={isWindowMode ? 1 : 2} />
           </div>
         </div>
       </div>
