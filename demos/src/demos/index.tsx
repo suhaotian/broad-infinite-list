@@ -41,8 +41,8 @@ export default function Demos() {
     news: "news-feed.tsx",
     logs: "logs-stream.tsx",
     chat: "chat.tsx",
-    chatgpt: "chatgpt/demo.tsx",
-    claude: "claude/demo.tsx",
+    chatgpt: "chatgpt-claude/demo.tsx",
+    claude: "chatgpt-claude/demo.tsx",
   };
 
   if (tab === "e2e") {
