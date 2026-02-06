@@ -3,6 +3,7 @@ import BidirectionalList, {
   type BidirectionalListRef,
 } from "broad-infinite-list/react";
 import { useState, useRef, useEffect } from "react";
+import useNextTick from "use-next-tick";
 
 export interface ChatMessage {
   id: number;
@@ -35,6 +36,7 @@ export function ChatDemo() {
   const [disable, setDisable] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [inputValue, setInputValue] = useState("");
+  const nextTick = useNextTick();
 
   useEffect(() => {
     ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
@@ -42,12 +44,10 @@ export function ChatDemo() {
     );
     const messages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(messages);
-    if (messages.length > 0) {
-      setTimeout(() => {
-        listRef.current?.scrollToBottom("instant");
-        setDisable(false);
-      }, 100);
-    }
+    nextTick(() => {
+      listRef.current?.scrollToBottom("instant");
+      setDisable(false);
+    });
   }, []);
 
   const handleLoadMore: BidirectionalListProps<ChatMessage>["onLoadMore"] =

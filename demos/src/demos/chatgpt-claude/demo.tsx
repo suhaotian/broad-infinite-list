@@ -16,6 +16,7 @@ import {
   RotateCw,
   ArrowDown,
 } from "lucide-react";
+import useNextTick from "use-next-tick";
 import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
@@ -113,6 +114,7 @@ const PAGE_SIZE = 20;
 
 // 1. Hook for managing message data and pagination logic
 const useMessageData = (totalMessages: number = TOTAL_COUNT) => {
+  const nextTick = useNextTick();
   const [ALL_MESSAGES, setAllMessages] = useState<Message[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [disable, setDisable] = useState(true);
@@ -125,10 +127,10 @@ const useMessageData = (totalMessages: number = TOTAL_COUNT) => {
     setAllMessages(ALL_MESSAGES);
     setMessages(messages);
     if (messages.length > 0) {
-      setTimeout(() => {
+      nextTick(() => {
         listRef.current?.scrollToBottom("instant");
         setDisable(false);
-      }, 100);
+      });
     }
   }, []);
 

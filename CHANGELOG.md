@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.2.0
+
+- Improve react version code, more robust
+- Improve react-native version code, more robust
+- Switch `useLayoutEffect` to `use-next-tick` package hook
+- Add more example: ChatGPT / Claude theme chat infinite list examples
+
 ## v1.1.4
 
 - Fix Vue scroll up restore scroll behaviour
