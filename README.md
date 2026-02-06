@@ -162,36 +162,35 @@ export default MyList;
 
 ### BidirectionalList Props
 
-| Property | Type | Required | Default | Description |
-|----------|------|----------|---------|-------------|
-| `items` | `T[]` | Yes | - | Current array of items to display |
-| `itemKey` | `(item: T) => string` | Yes | - | Function to extract a unique key from each item |
-| `renderItem` | `(item: T) => React.ReactNode` | Yes | - | Function to render each item |
-| `onLoadMore` | `(direction: "up" \| "down", refItem: T) => Promise<T[]>` | Yes | - | Called when more items should be loaded; returns the new items to prepend/append |
-| `hasPrevious` | `boolean` | Yes | - | Whether there are more items available above the current view |
-| `hasNext` | `boolean` | Yes | - | Whether there are more items available below the current view |
-| `onItemsChange` | `(items: T[]) => void` | No | `undefined` | Called when the items array changes due to loading or trimming |
-| `className` | `string` | No | `undefined` | The container div's className |
-| `listClassName` | `string` | No | `undefined` | The list wrapper div's className |
-| `spinnerRow` | `React.ReactNode` | No | `undefined` | Custom loading indicator shown during fetch |
-| `emptyState` | `React.ReactNode` | No | `undefined` | Content to display when items array is empty |
-| `viewCount` | `number` | No | `50` | Maximum number of items to keep in DOM; older items are trimmed |
-| `threshold` | `number` | No | `10` | Pixel distance from edge to trigger loading |
-| `useWindow` | `boolean` | No | `false` | If true, use window scroll instead of container scroll |
-| `disable` | `boolean` | No | `false` | If true, disable loading in both directions |
-| `onScrollStart` | `() => void` | No | `undefined` | Called when a programmatic scroll adjustment begins |
-| `onScrollEnd` | `() => void` | No | `undefined` | Called when a programmatic scroll adjustment ends |
+| Property        | Type                                                      | Required | Default     | Description                                                                      |
+| --------------- | --------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- |
+| `items`         | `T[]`                                                     | Yes      | -           | Current array of items to display                                                |
+| `itemKey`       | `(item: T) => string`                                     | Yes      | -           | Function to extract a unique key from each item                                  |
+| `renderItem`    | `(item: T) => React.ReactNode`                            | Yes      | -           | Function to render each item                                                     |
+| `onLoadMore`    | `(direction: "up" \| "down", refItem: T) => Promise<T[]>` | Yes      | -           | Called when more items should be loaded; returns the new items to prepend/append |
+| `hasPrevious`   | `boolean`                                                 | Yes      | -           | Whether there are more items available above the current view                    |
+| `hasNext`       | `boolean`                                                 | Yes      | -           | Whether there are more items available below the current view                    |
+| `onItemsChange` | `(items: T[]) => void`                                    | No       | `undefined` | Called when the items array changes due to loading or trimming                   |
+| `className`     | `string`                                                  | No       | `undefined` | The container div's className                                                    |
+| `listClassName` | `string`                                                  | No       | `undefined` | The list wrapper div's className                                                 |
+| `spinnerRow`    | `React.ReactNode`                                         | No       | `undefined` | Custom loading indicator shown during fetch                                      |
+| `emptyState`    | `React.ReactNode`                                         | No       | `undefined` | Content to display when items array is empty                                     |
+| `viewCount`     | `number`                                                  | No       | `50`        | Maximum number of items to keep in DOM; older items are trimmed                  |
+| `threshold`     | `number`                                                  | No       | `10`        | Pixel distance from edge to trigger loading                                      |
+| `useWindow`     | `boolean`                                                 | No       | `false`     | If true, use window scroll instead of container scroll                           |
+| `disable`       | `boolean`                                                 | No       | `false`     | If true, disable loading in both directions                                      |
+| `onScrollStart` | `() => void`                                              | No       | `undefined` | Called when a programmatic scroll adjustment begins                              |
+| `onScrollEnd`   | `() => void`                                              | No       | `undefined` | Called when a programmatic scroll adjustment ends                                |
 
 ### BidirectionalListRef
 
-| Property | Type | Required | Default | Description |
-|----------|------|----------|---------|-------------|
-| `scrollViewRef` | `RefObject<HTMLElement \| null>` | Yes | - | Reference to the scrollable container element |
-| `scrollToTop` | `(behavior?: ScrollBehavior) => void` | Yes | - | Scroll to the top of the list |
-| `scrollToBottom` | `(behavior?: ScrollBehavior) => void` | Yes | - | Scroll to the bottom of the list |
-| `scrollTo` | `(top: number, behavior?: ScrollBehavior) => void` | Yes | - | Scroll to a specific pixel offset from top |
-| `scrollToKey` | `(key: string, behavior?: ScrollBehavior) => void` | Yes | - | Scroll to an item by its key |
-
+| Property         | Type                                               | Required | Default | Description                                   |
+| ---------------- | -------------------------------------------------- | -------- | ------- | --------------------------------------------- |
+| `scrollViewRef`  | `RefObject<HTMLElement \| null>`                   | Yes      | -       | Reference to the scrollable container element |
+| `scrollToTop`    | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the top of the list                 |
+| `scrollToBottom` | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the bottom of the list              |
+| `scrollTo`       | `(top: number, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to a specific pixel offset from top    |
+| `scrollToKey`    | `(key: string, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to an item by its key                  |
 
 ## Development
 
@@ -213,3 +212,4 @@ If you find this project helpful, consider [buying me a coffee](https://github.c
 
 - [xior](https://github.com/suhaotian/xior) - Tiny fetch library with plugins support and axios-like API
 - [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects
+- [useNextTick](https://github.com/suhaotian/use-next-tick) - Vue style `nextTick` but for react
