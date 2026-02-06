@@ -31,26 +31,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v2
-      - name: Run build
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build main project
         run: bun i && bun run build
-      - name: Run build demos
-        run: cd demos && bun i && bun run build
-      - name: Run build vue-example
-        run: cd vue-example && npm i && npm run build && mkdir -p vue && mv dist/* vue && mv public/* vue
-        
+
+      - name: Build demos
+        working-directory: ./demos
+        run: bun i && bun run build
+
+      - name: Build vue-example
+        working-directory: ./vue-example
+        run: npm i && npm run build
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p _site
+          cp -r demos/dist/* _site/
+          mkdir -p _site/vue
+          cp -r vue-example/dist/* _site/vue/
+          if [ -d vue-example/public ]; then cp -r vue-example/public/* _site/vue/; fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-        path: |
-          ./demos/dist/*
-          ./vue-example/vue
+          path: ./_site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
