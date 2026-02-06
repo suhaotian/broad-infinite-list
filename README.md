@@ -15,6 +15,8 @@
 - News feed [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
 - Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
 - Vue Chat [Demo](https://suhaotian.github.io/broad-infinite-list/vue?demo=chat)
+- ChatGPT [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chatgpt)
+- Claude theme [Demo](https://suhaotian.github.io/broad-infinite-list?demo=claude)
 
 **How It Works**
 
