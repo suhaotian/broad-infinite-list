@@ -1,5 +1,18 @@
 name: E2E Tests
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'src/react.tsx'
+      - 'demos/src/demos/e2e.tsx'
+      - 'demos/tests/e2e.test.ts'
+      - '.github/workflows/e2e-test.yml'
+  pull_request:
+    paths:
+      - 'src/react.tsx'
+      - 'demos/src/demos/e2e.tsx'
+      - 'demos/tests/e2e.test.ts'
+      - '.github/workflows/e2e-test.yml'
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -10,10 +23,8 @@ jobs:
           bun-version: latest
       - name: Run build
         run: bun i && bun run build
-
       - run: cd demos && bun i
       - run: cd demos && bunx playwright install --with-deps
-      # - run: cd demos && bunx playwright install chromium
       - run: cd demos && bun test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
