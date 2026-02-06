@@ -23,7 +23,7 @@
     "tailwindcss": "^4.1.18",
     "broad-infinite-list": "file:..",
     "lucide-react": "^0.563.0",
-    "use-next-tick": "^1.0.0"
+    "use-next-tick": "^1.0.2"
   },
   "devDependencies": {
     "@types/react": "^19",

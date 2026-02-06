@@ -5,7 +5,7 @@
     "": {
       "name": "broad-infinite-list",
       "dependencies": {
-        "use-next-tick": "^1.0.0",
+        "use-next-tick": "^1.0.2",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -42,7 +42,7 @@
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "tailwindcss": "^4.1.18",
-        "use-next-tick": "^1.0.0",
+        "use-next-tick": "^1.0.2",
       },
       "devDependencies": {
         "@playwright/test": "^1.58.1",
@@ -81,6 +81,7 @@
         "react-native-screens": "~4.16.0",
         "react-native-web": "~0.21.0",
         "react-native-worklets": "0.5.1",
+        "use-next-tick": "^1.0.2",
       },
       "devDependencies": {
         "@types/react": "~19.1.0",
@@ -1917,7 +1918,7 @@
 
     "use-latest-callback": ["use-latest-callback@0.2.6", "", { "peerDependencies": { "react": ">=16.8" } }, "sha512-FvRG9i1HSo0wagmX63Vrm8SnlUU3LMM3WyZkQ76RnslpBrX694AdG4A0zQBx2B3ZifFA0yv/BaEHGBnEax5rZg=="],
 
-    "use-next-tick": ["use-next-tick@1.0.0", "", { "peerDependencies": { "react": ">=19" } }, "sha512-lAtmxbZO8KvZ8E3obhJXjuOZrt230+CEyrw/VWdovxGga/Z/LwiFHg4blC3MI9ZO6lQdT5xoH4+Z8/Y2X6b2FA=="],
+    "use-next-tick": ["use-next-tick@1.0.2", "", { "peerDependencies": { "react": ">=19" } }, "sha512-+5993+2QQTX3cxv1B2yw3EkOgKVHBZ0Sx90rRAoz51ztZEDKZqbW2vYG0iUgE6+Jnu7XUaAdsKHUVH/sZBZhWw=="],
 
     "use-sidecar": ["use-sidecar@1.1.3", "", { "dependencies": { "detect-node-es": "^1.1.0", "tslib": "^2.0.0" }, "peerDependencies": { "@types/react": "*", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-Fedw0aZvkhynoPYlA5WXrMCAMm+nSWdZt6lzJQ7Ok8S6Q+VsHmHpRWndVRJ8Be0ZbkfPc5LRYH+5XrzXcEeLRQ=="],
 
@@ -2208,8 +2209,6 @@
     "requireg/resolve": ["resolve@1.7.1", "", { "dependencies": { "path-parse": "^1.0.5" } }, "sha512-c7rwLofp8g1U+h1KNyHL/jicrKg1Ek4q+Lr33AL65uZTinUZHe30D5HlyN5V9NW0JX1D5dXQ4jqW5l7Sy/kGfw=="],
 
     "rn-expo-example/@types/react": ["@types/react@19.1.17", "", { "dependencies": { "csstype": "^3.0.2" } }, "sha512-Qec1E3mhALmaspIrhWt9jkQMNdw6bReVu64mjvhbhq2NFPftLPVr+l1SZgmw/66WwBNpDh7ao5AT6gF5v41PFA=="],
-
-    "rn-expo-example/broad-infinite-list": ["broad-infinite-list@root:", {}],
 
     "send/debug": ["debug@2.6.9", "", { "dependencies": { "ms": "2.0.0" } }, "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA=="],
 

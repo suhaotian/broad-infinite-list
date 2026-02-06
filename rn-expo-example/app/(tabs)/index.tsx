@@ -14,6 +14,7 @@ import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
 } from "broad-infinite-list/react-native";
+import useNextTick from "use-next-tick";
 
 export interface ChatMessage {
   id: number;
@@ -42,11 +43,11 @@ const generateMessage = (id: number): ChatMessage => ({
 let ALL_MESSAGES: ChatMessage[] = [];
 
 export default function ChatDemoScreen() {
+  const nextTick = useNextTick();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [disable, setDisable] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [inputValue, setInputValue] = useState("");
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     ALL_MESSAGES = Array.from({ length: TOTAL_COUNT }, (_, i) =>
@@ -54,15 +55,12 @@ export default function ChatDemoScreen() {
     );
     const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(initialMessages);
-    setLoaded(true);
-  }, []);
 
-  useLayoutEffect(() => {
-    setTimeout(() => {
+    nextTick(() => {
       listRef.current?.scrollToBottom?.(false);
       setDisable(false);
     });
-  }, [loaded]);
+  }, []);
 
   const handleLoadMore: BidirectionalListProps<ChatMessage>["onLoadMore"] =
     async (direction, refItem) => {

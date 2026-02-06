@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useLayoutEffect,
   useRef,
   useCallback,
   useImperativeHandle,
@@ -41,7 +40,7 @@ export interface BidirectionalListProps<T> {
   /** Function to render each item */
   renderItem: (item: T) => React.ReactNode;
   /** Called when more items should be loaded; returns the new items to prepend/append */
-  onLoadMore: (direction: "up" | "down", refItem: T) => Promise<T[]>;
+  onLoadMore: (direction: LoadDirection, refItem: T) => Promise<T[]>;
   /** Called when the items array changes due to loading or trimming */
   onItemsChange?: (items: T[]) => void;
   /** The container ScrollView's style */
@@ -67,8 +66,7 @@ export interface BidirectionalListProps<T> {
   /** Called when a programmatic scroll adjustment ends */
   onScrollEnd?: () => void;
 }
-
-type Direction = "up" | "down";
+export type LoadDirection = "up" | "down";
 
 const LOAD_COOLDOWN_MS = 150;
 const MIN_SCROLL_DELTA = 1;
@@ -95,18 +93,31 @@ function BidirectionalListInner<T>(
   ref: React.Ref<BidirectionalListRef>
 ) {
   const nextTick = useNextTick();
+
+  // DOM refs
   const scrollViewRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
   const spinnerWrapperRef = useRef<View>(null);
   const mounted = useRef(true);
+
+  // Mutable state that doesn't need re-renders
   const itemsRef = useRef(items);
   itemsRef.current = items;
 
   // Item key -> View ref for on-demand measureLayout
   const itemRefs = useRef(new Map<string, View>());
 
-  const loadLock = useRef({ up: false, down: false });
+  const loadLock = useRef<Record<LoadDirection, boolean>>({
+    up: false,
+    down: false,
+  });
   const isAdjustingRef = useRef(false);
+
+  // Pending scroll-restoration info, set before React commits, consumed in nextTick
+  const pendingRestoreRef = useRef<{
+    type: "prepend" | "down-trim";
+    anchor: { key: string; offset: number } | null;
+  } | null>(null);
 
   const [isUpLoading, setIsUpLoading] = useState(false);
   const [isDownLoading, setIsDownLoading] = useState(false);
@@ -116,23 +127,6 @@ function BidirectionalListInner<T>(
     contentHeight: 0,
     viewportHeight: 0,
   });
-
-  /**
-   * Monotonic counter incremented on every commit that needs scroll restoration.
-   * items.length is unreliable — if a load returns the same count as trimmed,
-   * the length stays the same and the layout effect won't fire.
-   */
-  const [commitId, setCommitId] = useState(0);
-
-  // Scroll-restoration state for prepend (up-load)
-  const anchorKeyRef = useRef<string | null>(null);
-  const spinnerHeightRef = useRef(0);
-  const isPrependRef = useRef(false);
-
-  // Scroll-restoration state for down-trim
-  const isDownTrimRef = useRef(false);
-  const downTrimAnchorKeyRef = useRef<string | null>(null);
-  const downTrimAnchorOffsetRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -149,8 +143,6 @@ function BidirectionalListInner<T>(
       }
     }
   }, [items, itemKey]);
-
-  // --- Measurement helpers ---
 
   /**
    * Measure an item's Y offset relative to the ScrollView content root.
@@ -179,8 +171,7 @@ function BidirectionalListInner<T>(
   const measureViewHeight = useCallback(
     (viewRef: React.RefObject<View | null>): number => {
       const view = viewRef.current;
-      const content = contentRef.current;
-      if (!view || !content) return 0;
+      if (!view) return 0;
 
       let result = 0;
       try {
@@ -194,8 +185,6 @@ function BidirectionalListInner<T>(
     },
     []
   );
-
-  // --- Scroll helpers ---
 
   const scrollTo = useCallback((y: number, animated = true) => {
     scrollViewRef.current?.scrollTo({ y: Math.max(0, y), animated });
@@ -252,42 +241,20 @@ function BidirectionalListInner<T>(
     else itemRefs.current.delete(key);
   }, []);
 
-  // --- Scroll restoration (mirrors web version) ---
-
-  /**
-   * When the up-spinner renders, measure its height and snapshot the anchor key
-   * (first visible item). Runs synchronously after commit, before paint.
-   */
-  useLayoutEffect(() => {
-    if (!isUpLoading) return;
-
-    spinnerHeightRef.current = measureViewHeight(spinnerWrapperRef);
-
-    const currentItems = itemsRef.current;
-    if (currentItems.length > 0) {
-      anchorKeyRef.current = itemKey(currentItems[0] as T);
+  const applyScrollRestore = useCallback(() => {
+    const pending = pendingRestoreRef.current;
+    if (!pending) {
+      isAdjustingRef.current = false;
+      return;
     }
-  }, [isUpLoading, itemKey, measureViewHeight]);
+    pendingRestoreRef.current = null;
 
-  /**
-   * After items are committed (prepend or down-trim), restore scroll position
-   * so the anchor item stays visually pinned.
-   *
-   * For prepend: new items above the anchor push it down. The spinner was
-   * removed, pulling it up by spinnerHeight. Delta = anchorY - spinnerHeight.
-   *
-   * For down-trim: items removed from top shift the anchor up.
-   * Delta = anchorY - previousAnchorOffset.
-   */
-  useLayoutEffect(() => {
-    if (isPrependRef.current) {
-      isPrependRef.current = false;
-
-      const anchorKey = anchorKeyRef.current;
+    if (pending.type === "prepend") {
+      const anchorKey = pending.anchor?.key;
       if (anchorKey) {
         const anchorY = measureItemY(anchorKey);
         if (anchorY !== null) {
-          const targetScroll = anchorY - spinnerHeightRef.current;
+          const targetScroll = anchorY - (pending.anchor?.offset ?? 0);
           if (
             Math.abs(targetScroll - metrics.current.scrollY) > MIN_SCROLL_DELTA
           ) {
@@ -295,38 +262,23 @@ function BidirectionalListInner<T>(
           }
         }
       }
-
-      anchorKeyRef.current = null;
-      spinnerHeightRef.current = 0;
-      isAdjustingRef.current = false;
-      return;
-    }
-
-    if (isDownTrimRef.current) {
-      isDownTrimRef.current = false;
-
-      const anchorKey = downTrimAnchorKeyRef.current;
-      if (anchorKey) {
-        const anchorY = measureItemY(anchorKey);
+    } else if (pending.type === "down-trim") {
+      if (pending.anchor) {
+        const anchorY = measureItemY(pending.anchor.key);
         if (anchorY !== null) {
-          const delta = anchorY - downTrimAnchorOffsetRef.current;
+          const delta = anchorY - pending.anchor.offset;
           if (Math.abs(delta) > MIN_SCROLL_DELTA) {
             setScrollY(metrics.current.scrollY + delta);
           }
         }
       }
-
-      downTrimAnchorKeyRef.current = null;
-      downTrimAnchorOffsetRef.current = 0;
-      isAdjustingRef.current = false;
-      return;
     }
-  }, [commitId, measureItemY, setScrollY]);
 
-  // --- Load handler ---
+    isAdjustingRef.current = false;
+  }, [measureItemY, setScrollY]);
 
   const handleLoad = useCallback(
-    async (direction: Direction): Promise<void> => {
+    async (direction: LoadDirection): Promise<void> => {
       if (disable || !mounted.current) return;
       const isUp = direction === "up";
 
@@ -339,15 +291,37 @@ function BidirectionalListInner<T>(
 
       loadLock.current[direction] = true;
       isAdjustingRef.current = true;
-      if (isUp) setIsUpLoading(true);
-      else setIsDownLoading(true);
+
+      if (isUp) {
+        setIsUpLoading(true);
+        // Wait for spinner to render so we can measure it as the anchor offset.
+        // The first visible item sits below the spinner, so its visual offset
+        // equals the spinner height.
+        nextTick(() => {
+          const spinnerHeight = measureViewHeight(spinnerWrapperRef);
+          const firstKey =
+            itemsRef.current.length > 0
+              ? itemKey(itemsRef.current[0] as T)
+              : null;
+          if (firstKey) {
+            // For prepend, the anchor's "previous offset" is the spinner height
+            // because the anchor sat directly below the spinner before new items appeared.
+            pendingRestoreRef.current = {
+              type: "prepend",
+              anchor: { key: firstKey, offset: spinnerHeight },
+            };
+          }
+        });
+      } else {
+        setIsDownLoading(true);
+      }
 
       try {
         const refItem: T = isUp
           ? (currentItems[0] as T)
           : (currentItems[currentItems.length - 1] as T);
 
-        const newItems: T[] = await onLoadMore(direction, refItem);
+        const newItems = await onLoadMore(direction, refItem);
 
         if (!mounted.current || newItems.length === 0) {
           if (isUp) setIsUpLoading(false);
@@ -357,17 +331,16 @@ function BidirectionalListInner<T>(
         }
 
         if (isUp) {
-          let nextItems: T[] = [...newItems, ...currentItems];
+          let nextItems = [...newItems, ...currentItems];
           if (nextItems.length > viewCount) {
             nextItems = nextItems.slice(0, viewCount);
           }
 
-          isPrependRef.current = true;
           onItemsChange?.(nextItems);
           setIsUpLoading(false);
-          setCommitId((c) => c + 1);
+          nextTick(applyScrollRestore);
         } else {
-          let nextItems: T[] = [...currentItems, ...newItems];
+          let nextItems = [...currentItems, ...newItems];
           let didTrim = false;
 
           if (nextItems.length > viewCount) {
@@ -379,18 +352,18 @@ function BidirectionalListInner<T>(
             const anchorKey = itemKey(nextItems[0] as T);
             const anchorY = measureItemY(anchorKey);
             if (anchorY !== null) {
-              downTrimAnchorKeyRef.current = anchorKey;
-              downTrimAnchorOffsetRef.current = anchorY;
+              pendingRestoreRef.current = {
+                type: "down-trim",
+                anchor: { key: anchorKey, offset: anchorY },
+              };
             }
           }
-
-          if (didTrim) isDownTrimRef.current = true;
 
           onItemsChange?.(nextItems);
           setIsDownLoading(false);
 
           if (didTrim) {
-            setCommitId((c) => c + 1);
+            nextTick(applyScrollRestore);
           } else {
             isAdjustingRef.current = false;
           }
@@ -410,17 +383,18 @@ function BidirectionalListInner<T>(
     },
     [
       disable,
+      hasPrevious,
+      hasNext,
       onLoadMore,
       onItemsChange,
       viewCount,
       itemKey,
       measureItemY,
-      hasPrevious,
-      hasNext,
+      measureViewHeight,
+      nextTick,
+      applyScrollRestore,
     ]
   );
-
-  // --- Scroll event ---
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -456,8 +430,6 @@ function BidirectionalListInner<T>(
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     metrics.current.viewportHeight = e.nativeEvent.layout.height;
   }, []);
-
-  // --- Render ---
 
   const defaultSpinner = (
     <View style={{ padding: 12, alignItems: "center" }}>
