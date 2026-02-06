@@ -5,7 +5,7 @@
     "": {
       "name": "broad-infinite-list",
       "dependencies": {
-        "use-next-tick": "^1.0.2",
+        "use-next-tick": "^1.0.3",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -42,7 +42,7 @@
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "tailwindcss": "^4.1.18",
-        "use-next-tick": "^1.0.2",
+        "use-next-tick": "^1.0.3",
       },
       "devDependencies": {
         "@playwright/test": "^1.58.1",
@@ -81,7 +81,7 @@
         "react-native-screens": "~4.16.0",
         "react-native-web": "~0.21.0",
         "react-native-worklets": "0.5.1",
-        "use-next-tick": "^1.0.2",
+        "use-next-tick": "^1.0.3",
       },
       "devDependencies": {
         "@types/react": "~19.1.0",
@@ -1918,7 +1918,7 @@
 
     "use-latest-callback": ["use-latest-callback@0.2.6", "", { "peerDependencies": { "react": ">=16.8" } }, "sha512-FvRG9i1HSo0wagmX63Vrm8SnlUU3LMM3WyZkQ76RnslpBrX694AdG4A0zQBx2B3ZifFA0yv/BaEHGBnEax5rZg=="],
 
-    "use-next-tick": ["use-next-tick@1.0.2", "", { "peerDependencies": { "react": ">=19" } }, "sha512-+5993+2QQTX3cxv1B2yw3EkOgKVHBZ0Sx90rRAoz51ztZEDKZqbW2vYG0iUgE6+Jnu7XUaAdsKHUVH/sZBZhWw=="],
+    "use-next-tick": ["use-next-tick@1.0.3", "", { "peerDependencies": { "react": ">=19" } }, "sha512-h+/ViY62BG6C09KjYBHAXhLutbmnx62v6IAALYWIPArgoNu6yFDh/+KXEd0Y8k5qU6cTzrEUJu7grPkj/9YpgA=="],
 
     "use-sidecar": ["use-sidecar@1.1.3", "", { "dependencies": { "detect-node-es": "^1.1.0", "tslib": "^2.0.0" }, "peerDependencies": { "@types/react": "*", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-Fedw0aZvkhynoPYlA5WXrMCAMm+nSWdZt6lzJQ7Ok8S6Q+VsHmHpRWndVRJ8Be0ZbkfPc5LRYH+5XrzXcEeLRQ=="],
 

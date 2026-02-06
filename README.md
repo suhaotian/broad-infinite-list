@@ -212,4 +212,4 @@ If you find this project helpful, consider [buying me a coffee](https://github.c
 
 - [xior](https://github.com/suhaotian/xior) - Tiny fetch library with plugins support and axios-like API
 - [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects
-- [useNextTick](https://github.com/suhaotian/use-next-tick) - Vue style `nextTick` but for react
+- [useNextTick](https://github.com/suhaotian/use-next-tick) - Vue style `nextTick` but for react: Running callbacks after the DOM or native views have updated.
