@@ -18,7 +18,6 @@ import {
   type LayoutChangeEvent,
   Platform,
 } from "react-native";
-import useNextTick from "use-next-tick";
 
 export interface BidirectionalListRef {
   /** Reference to the scrollable ScrollView */
@@ -94,7 +93,6 @@ function BidirectionalListInner<T>(
   }: BidirectionalListProps<T>,
   ref: React.Ref<BidirectionalListRef>
 ) {
-  const nextTick = useNextTick();
   const scrollViewRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
   const spinnerWrapperRef = useRef<View>(null);
