@@ -87,8 +87,8 @@ importers:
         specifier: 0.5.1
         version: 0.5.1(@babel/core@7.29.0)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       use-next-tick:
-        specifier: ^1.0.2
-        version: 1.0.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^1.1.2
+        version: 1.1.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     devDependencies:
       '@types/react':
         specifier: ~19.1.0
@@ -3963,8 +3963,8 @@ packages:
     peerDependencies:
       react: '>=16.8'
 
-  use-next-tick@1.0.2:
-    resolution: {integrity: sha512-+5993+2QQTX3cxv1B2yw3EkOgKVHBZ0Sx90rRAoz51ztZEDKZqbW2vYG0iUgE6+Jnu7XUaAdsKHUVH/sZBZhWw==}
+  use-next-tick@1.1.2:
+    resolution: {integrity: sha512-ww/Hnov+6zThgqcPPAiR9vjBiixydV9PgsaRDVNYfVvG4Pe3O9aXBsD7HooJBPL2a53CkK9quTFb43voEjC3eA==}
     peerDependencies:
       react: '>=19'
       react-dom: '*'
@@ -6179,7 +6179,6 @@ snapshots:
   broad-infinite-list@file:..(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      use-next-tick: 1.0.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     optionalDependencies:
       react-dom: 19.1.0(react@19.1.0)
       react-native: 0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
@@ -8816,7 +8815,7 @@ snapshots:
     dependencies:
       react: 19.1.0
 
-  use-next-tick@1.0.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+  use-next-tick@1.1.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
     optionalDependencies:

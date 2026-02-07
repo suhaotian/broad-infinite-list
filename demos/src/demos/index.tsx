@@ -4,7 +4,13 @@ import { ChatDemo } from "./chat";
 import { LogsDemo } from "./logs-stream";
 import ChatGPTClaude from "./chatgpt-claude/demo";
 
-import { Github, ExternalLink, Package, HandHelping } from "lucide-react";
+import {
+  Github,
+  ExternalLink,
+  Package,
+  HandHelping,
+  HomeIcon,
+} from "lucide-react";
 import E2EDemo from "./e2e";
 
 window.onerror = (e) => {
@@ -50,12 +56,19 @@ export default function Demos() {
   }
   if (tab === "chatgpt") {
     return (
-      <div className="flex flex-col h-screen h-[100dvh] relative">
+      <div className="flex flex-col h-screen h-[100dvh]! relative">
         <ChatGPTClaude
           key="chatgpt"
           type="chatgpt"
           headerItem={
-            <div className="flex space-x-6 items-center pr-2">{links}</div>
+            <div className="flex space-x-1 md:space-x-6 items-center pr-2">
+              <a
+                href="/broad-infinite-list"
+                className="flex items-center mr-4 text-sm font-bold transition-colors">
+                <HomeIcon size={18} />
+              </a>
+              {links}
+            </div>
           }
         />
       </div>
@@ -63,12 +76,19 @@ export default function Demos() {
   }
   if (tab === "claude") {
     return (
-      <div className="flex flex-col h-screen h-[100dvh] relative">
+      <div className="flex flex-col h-screen h-[100dvh]! relative">
         <ChatGPTClaude
           key="claude"
           type="claude"
           headerItem={
-            <div className="flex space-x-6 items-center pr-2">{links}</div>
+            <div className="flex space-x-1 md:space-x-6 items-center pr-2">
+              <a
+                href="/broad-infinite-list"
+                className="flex items-center mr-4 text-sm font-bold transition-colors">
+                <HomeIcon size={18} />
+              </a>
+              {links}
+            </div>
           }
         />
       </div>
@@ -182,7 +202,7 @@ const renderFooter = () => {
           className="flex items-center gap-2 text-sm font-bold text-amber-500 hover:text-amber-700 transition-colors">
           Tsdk
         </a>
-         <a
+        <a
           href="https://github.com/suhaotian/use-next-tick"
           className="flex items-center gap-2 text-sm font-bold text-amber-500 hover:text-amber-700 transition-colors">
           useNextTick

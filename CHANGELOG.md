@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.2.1
+
+- Revert `use-next-tick`, This causes scroll flashing in iOS Safari.
+- Fix ChatGPT and Claude demo style on iOS safari.
+- Perf(react): observe child list elements `subtree: false` for better performance.
+
 ## v1.2.0
 
 - Improve React version code to make it more robust.
