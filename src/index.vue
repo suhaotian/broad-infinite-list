@@ -186,7 +186,7 @@ const scrollTo = (top: number, behavior: ScrollBehavior = "smooth"): void => {
 /** Scroll to an item by its key */
 const scrollToKey = (key: string, behavior?: ScrollBehavior): void => {
   const containerEl = props.useWindow ? rootEl : scrollViewRef.value;
-  const el = containerEl?.querySelector(`[data-item-key="${key}"]`);
+  const el = containerEl?.querySelector(`[data-id="${key}"]`);
   if (el) {
     el.scrollIntoView({ behavior, block: "start" });
   }
@@ -238,11 +238,11 @@ const getViewportTop = (): number => {
   return scrollViewRef.value?.getBoundingClientRect().top ?? 0;
 };
 
-/** Find a list item element by its data-item-key attribute */
+/** Find a list item element by its data-id attribute */
 const findElementByKey = (key: string): Element | null => {
   const wrapper = scrollViewRef.value;
   if (!wrapper) return null;
-  return wrapper.querySelector(`[data-item-key="${key}"]`);
+  return wrapper.querySelector(`[data-id="${key}"]`);
 };
 
 /**
@@ -510,7 +510,7 @@ const containerStyles = computed<CSSProperties>(() => {
       <div
         v-for="item in props.items"
         :key="props.itemKey(item)"
-        :data-item-key="props.itemKey(item)"
+        :data-id="props.itemKey(item)"
       >
         <slot name="item" :item="item">
           {{ item }}

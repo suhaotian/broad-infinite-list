@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 const TEST_URL = "http://localhost:3002?demo=e2e";
-const ITEM_SELECTOR = "[data-item-key]";
+const ITEM_SELECTOR = "[data-id]";
 const TAB_CONTAINER = 'button:has-text("Div Container")';
 const TAB_WINDOW = 'button:has-text("Window Scroll")';
 
@@ -14,8 +14,8 @@ const PAGE_SIZE = 10;
  */
 async function getItemKeys(page: Page): Promise<string[]> {
   return page.evaluate(() => {
-    return Array.from(document.querySelectorAll("[data-item-key]")).map(
-      (el) => el.getAttribute("data-item-key")!
+    return Array.from(document.querySelectorAll("[data-id]")).map(
+      (el) => el.getAttribute("data-id")!
     );
   });
 }
@@ -37,7 +37,7 @@ async function scrollToEdge(
         );
       } else {
         const firstItem = document.querySelector(
-          "[data-item-key]"
+          "[data-id]"
         ) as HTMLElement;
         if (!firstItem) return;
 
@@ -158,7 +158,7 @@ function testScrollMode(modeName: string, useWindow: boolean) {
       // Check if item 29 is visible in viewport
       const isVisible = await page.evaluate(
         ({ key, useWindowMode }) => {
-          const item = document.querySelector(`[data-item-key="${key}"]`);
+          const item = document.querySelector(`[data-id="${key}"]`);
           if (!item) return false;
 
           const rect = item.getBoundingClientRect();
@@ -231,7 +231,7 @@ function testScrollMode(modeName: string, useWindow: boolean) {
       // Check if item 20 is visible in viewport
       const isVisible = await page.evaluate(
         ({ key, useWindowMode }) => {
-          const item = document.querySelector(`[data-item-key="${key}"]`);
+          const item = document.querySelector(`[data-id="${key}"]`);
           if (!item) return false;
 
           const rect = item.getBoundingClientRect();

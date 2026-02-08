@@ -164,7 +164,7 @@ export default function BidirectionalList<T>({
   const findElementByKey = useCallback((key: string): Element | null => {
     const wrapper = listWrapperRef.current;
     if (!wrapper) return null;
-    return wrapper.querySelector(`[data-item-key="${key}"]`);
+    return wrapper.querySelector(`[data-id="${key}"]`);
   }, []);
 
   /**
@@ -378,7 +378,7 @@ export default function BidirectionalList<T>({
       {isUpLoading && spinnerRow}
       <div ref={listWrapperRef} className={listClassName}>
         {items.map((item: T) => (
-          <div key={itemKey(item)} data-item-key={itemKey(item)}>
+          <div key={itemKey(item)} data-id={itemKey(item)}>
             {renderItem(item)}
           </div>
         ))}
