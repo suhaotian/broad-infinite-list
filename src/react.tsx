@@ -177,7 +177,7 @@ export default function BidirectionalList<T>({
     (key: string): Element | null => {
       const container = useWindow ? getRootEl() : scrollViewRef.current;
       if (!container) return null;
-      return container.querySelector(`[data-item-key="${key}"]`);
+      return container.querySelector(`[data-id="${key}"]`);
     },
     [useWindow]
   );
@@ -388,7 +388,7 @@ export default function BidirectionalList<T>({
       {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
       <div ref={listWrapperRef} className={listClassName}>
         {items.map((item: T) => (
-          <div key={itemKey(item)} data-item-key={itemKey(item)}>
+          <div key={itemKey(item)} data-id={itemKey(item)}>
             {renderItem(item)}
           </div>
         ))}

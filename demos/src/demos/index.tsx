@@ -204,7 +204,7 @@ const renderFooter = () => {
         </a>
         <a
           href="https://github.com/suhaotian/use-next-tick"
-          className="flex items-center gap-2 text-sm font-bold text-amber-500 hover:text-amber-700 transition-colors">
+          className="flex items-center gap-2 text-sm font-bold text-emerald-500 hover:text-emerald-700 transition-colors">
           useNextTick
         </a>
       </div>
