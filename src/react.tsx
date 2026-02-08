@@ -383,7 +383,7 @@ export default function BidirectionalList<T>({
     <div ref={scrollViewRef} style={containerStyles} className={className}>
       <div
         ref={topSentinelRef}
-        style={{ height: 10, marginBottom: -10, overflowAnchor: "none" }}
+        style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
       />
       {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
       <div ref={listWrapperRef} className={listClassName}>
@@ -394,7 +394,7 @@ export default function BidirectionalList<T>({
         ))}
       </div>
       {isDownLoading && spinnerRow}
-      <div ref={bottomSentinelRef} style={{ height: 10, marginTop: -10 }} />
+      <div ref={bottomSentinelRef} style={{ height: 1, marginTop: -1 }} />
       {items.length === 0 && !isUpLoading && !isDownLoading && emptyState}
     </div>
   );

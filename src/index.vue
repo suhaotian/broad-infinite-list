@@ -36,6 +36,7 @@ import {
   type CSSProperties,
 } from "vue";
 
+
 export interface BidirectionalListRef {
   scrollViewRef: Ref<HTMLElement | null>;
   scrollToTop: (behavior?: ScrollBehavior) => void;
@@ -74,12 +75,19 @@ type LoadDirection = "up" | "down";
 
 /**
  * Scroll anchor data structure for position restoration.
- * For up-loads: we remember the first item's key and the spinner height,
- * then scroll to firstItemTop + spinnerHeight after loading.
+ * Stores an element's key and its visual offset from the viewport/container top.
  */
 interface ScrollAnchor {
   key: string;
-  spinnerHeight: number;
+  offset: number;
+}
+
+/**
+ * Pending scroll restoration info, set before DOM updates, consumed after render.
+ */
+interface PendingRestore {
+  type: "prepend" | "down-trim";
+  anchor: ScrollAnchor | null;
 }
 
 /**
@@ -87,6 +95,7 @@ interface ScrollAnchor {
  * This provides TypeScript autocomplete and validation for slot usage.
  */
 defineSlots<BidirectionalListSlots<T>>();
+
 
 const props = withDefaults(
   defineProps<{
@@ -129,10 +138,20 @@ const props = withDefaults(
 
 /** Cooldown period in milliseconds between load operations to prevent race conditions */
 const LOAD_COOLDOWN_MS = 150;
-/** Maximum time to wait for DOM element to appear */
-const DOM_WAIT_TIMEOUT_MS = 1000;
 /** Minimum scroll delta to trigger adjustment (prevents micro-adjustments) */
 const MIN_SCROLL_DELTA = 1;
+
+/** Next tick layout helper for Safari-compatible timing */
+const nextTickLayout = (callback: () => void): Promise<void> => {
+    return new Promise((resolve) => {
+      nextTick(() => {
+        requestAnimationFrame(() => {
+          callback();
+          resolve();
+        });
+      });
+    });
+  };
 
 /** Reference to the scrollable container element */
 const scrollViewRef = ref<HTMLElement | null>(null);
@@ -161,6 +180,8 @@ const itemsRef = ref<T[]>([]);
 const rootEl = document.documentElement;
 /** IntersectionObserver instance for detecting when to load more items */
 const intersectionObserver = ref<IntersectionObserver | null>(null);
+/** Pending scroll restoration data, set before DOM update, consumed after */
+const pendingRestoreRef = ref<PendingRestore | null>(null);
 
 /**
  * Sync itemsRef with props.items
@@ -234,110 +255,87 @@ const setScrollTop = (value: number): void => {
 
 /** Get the viewport-relative top position of the container */
 const getViewportTop = (): number => {
-  // if (props.useWindow) return 0;
+  if (props.useWindow) return 0;
   return scrollViewRef.value?.getBoundingClientRect().top ?? 0;
 };
 
 /** Find a list item element by its data-id attribute */
 const findElementByKey = (key: string): Element | null => {
-  const wrapper = scrollViewRef.value;
+  const wrapper = props.useWindow ? rootEl : scrollViewRef.value;
   if (!wrapper) return null;
   return wrapper.querySelector(`[data-id="${key}"]`);
 };
 
 /**
- * Measures the spinner wrapper's height.
- * This is used to calculate scroll offset for up-loads.
+ * Snapshot an element's visual position relative to the viewport/container top.
+ * This captures where the element appears on screen before DOM changes.
  * 
- * @returns The spinner height in pixels, or 0 if not measurable
+ * @param key - The data-id of the element to snapshot
+ * @returns ScrollAnchor object or null if element not found
  */
-const measureSpinnerHeight = (): number => {
-  if (!spinnerWrapperRef.value) return 0;
-  return spinnerWrapperRef.value.getBoundingClientRect().height;
+const snapshotAnchor = (key: string): ScrollAnchor | null => {
+  const el = findElementByKey(key);
+  if (!el) return null;
+  return {
+    key,
+    offset: el.getBoundingClientRect().top - getViewportTop(),
+  };
 };
 
 /**
- * Creates a scroll anchor for up-loads.
- * Simply stores the first item's key - spinner height will be measured after spinner renders.
+ * Compute how far to adjust scrollTop so that an anchor element stays
+ * at its previous visual offset. Returns 0 if not applicable.
  * 
- * @param items - Current items array
- * @returns ScrollAnchor object or null if no suitable anchor found
+ * @param anchor - The previously snapshotted anchor
+ * @returns Scroll delta in pixels, or 0 if no adjustment needed
  */
-const createUpLoadAnchor = (items: T[]): { key: string } | null => {
-  if (items.length === 0) return null;
+const computeAnchorDelta = (anchor: ScrollAnchor | null): number => {
+  if (!anchor) return 0;
+  const el = findElementByKey(anchor.key);
+  if (!el) return 0;
+  const currentOffset = el.getBoundingClientRect().top - getViewportTop();
+  const delta = currentOffset - anchor.offset;
   
-  const anchorItem = items[0] as T;
-  const anchorKey = props.itemKey(anchorItem);
-  
-  return { key: anchorKey };
+  return Math.abs(delta) > MIN_SCROLL_DELTA ? delta : 0;
 };
 
 /**
- * Restores scroll position for up-loads using the spinner-height approach.
- * After loading: scroll to anchorTop + spinnerHeight
- * 
- * @param anchorKey - The key of the anchor item
- * @param spinnerHeight - The measured height of the spinner
+ * Apply pending scroll restoration after DOM update.
+ * Uses nextTickLayout to ensure Safari has completed layout before measuring.
  */
-const restoreScrollAfterUpLoad = async (anchorKey: string, spinnerHeight: number): Promise<void> => {
-  const element = findElementByKey(anchorKey);
-  
-  if (!element) {
-    return;
-  }
-  const { top } = element.getBoundingClientRect()
-  const anchorTop = top - getViewportTop();
-  const targetScrollTop = anchorTop - spinnerHeight;
+const applyScrollRestore = (spinnerHeight = 0): void => {
+  nextTickLayout(() => {
+    const pending = pendingRestoreRef.value;
+    if (!pending) {
+      isAdjustingRef.value = false;
+      return;
+    }
+    pendingRestoreRef.value = null;
 
-  if (Math.abs(targetScrollTop - getScrollTop()) > MIN_SCROLL_DELTA) {
-    setScrollTop(targetScrollTop);
-  }
-};
+    const delta = computeAnchorDelta(pending.anchor);
+    if (delta !== 0) {
+      setScrollTop(getScrollTop() + delta - spinnerHeight);
+    }
 
-/**
- * Trims items array to viewCount and returns information about what was trimmed.
- * Uses consistent logic for both directions.
- * 
- * @param items - Items array to trim
- * @param direction - Load direction (affects trim strategy)
- * @returns Object with trimmed items and metadata
- */
-const trimItemsToviewCount = (items: T[], direction: LoadDirection) => {
-  if (items.length <= props.viewCount) {
-    return {
-      trimmedItems: items,
-      wasTrimmed: false,
-      trimmedFromTop: false
-    };
-  }
-  
-  if (direction === "up") {
-    // Trim from bottom (end of array) to preserve newly loaded items at top
-    return {
-      trimmedItems: items.slice(0, props.viewCount),
-      wasTrimmed: true,
-      trimmedFromTop: false
-    };
-  } else {
-    // Trim from top (beginning of array) to preserve newly loaded items at bottom
-    const excess = items.length - props.viewCount;
-    return {
-      trimmedItems: items.slice(excess),
-      wasTrimmed: true,
-      trimmedFromTop: true
-    };
-  }
+    isAdjustingRef.value = false;
+  });
 };
 
 /**
  * Handles loading more items in the specified direction.
  * 
- * Approach for up-loads (simplified):
- * 1. Remember the first item's key as anchor
- * 2. Show spinner and wait for DOM update
- * 3. Measure spinner height
- * 4. Load new items
- * 5. After items render, scroll to anchorTop + spinnerHeight
+ * Approach (matches React version for iOS compatibility):
+ * 
+ * UP-LOAD:
+ * 1. Show spinner and wait for it to render
+ * 2. Snapshot first item's position (which now sits below spinner)
+ * 3. Load new items
+ * 4. After render, restore first item to its snapshotted position
+ * 
+ * DOWN-LOAD:
+ * 1. Load new items
+ * 2. If trimming occurs, snapshot new first item before trim
+ * 3. After render, restore new first item to its snapshotted position
  * 
  * @param direction - "up" to load older items, "down" to load newer items
  */
@@ -354,76 +352,107 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
   // Acquire locks and set loading state
   loadingLockRef[direction] = true;
   isAdjustingRef.value = true;
-  
-  let anchorKey: string | null = null;
-  let spinnerHeight = 0;
-  
-  if (direction === "up") {
-    // Remember the anchor item before showing spinner
-    const anchor = createUpLoadAnchor(currentItems);
-    if (anchor) {
-      anchorKey = anchor.key;
-    }
-    
+
+  const isUp = direction === "up";
+  let upSpinnerHeight = 0;
+
+  if (isUp) {
     // Show spinner
     isUpLoading.value = true;
     
-    // Wait for spinner to render, then measure its height
-    await nextTick();
-    spinnerHeight = measureSpinnerHeight();
+    // Wait for spinner to render AND layout to complete, then measure spinner height.
+    await nextTickLayout(() => {
+      const firstKey = itemsRef.value.length > 0 
+        ? props.itemKey(itemsRef.value[0] as T) 
+        : null;
+      
+      if (firstKey) {
+        // Measure the spinner wrapper's height
+        upSpinnerHeight = spinnerWrapperRef.value?.getBoundingClientRect().height ?? 0;
+        
+        // Store spinner height as the offset
+        // After new items load, the first item should be at this distance from the top
+        pendingRestoreRef.value = {
+          type: "prepend",
+          anchor: { key: firstKey, offset: upSpinnerHeight },
+        };
+      }
+    });
   } else {
     isDownLoading.value = true;
   }
 
   try {
-    const refItem: T = direction === "up" 
+    const refItem: T = isUp 
       ? currentItems[0] as T
       : currentItems[currentItems.length - 1] as T;
       
     const newItems: T[] = await props.onLoadMore(direction, refItem);
 
     if (newItems.length === 0) {
+      if (isUp) isUpLoading.value = false;
+      else isDownLoading.value = false;
+      isAdjustingRef.value = false;
       return;
     }
 
-    // Merge new items with existing items
-    const mergedItems: T[] = direction === "up" 
-      ? [...newItems, ...currentItems] as T[]
-      : [...currentItems, ...newItems] as T[];
+    if (isUp) {
+      // Prepend new items
+      let nextItems = [...newItems, ...currentItems] as T[];
+      
+      // Trim from bottom if needed
+      if (nextItems.length > props.viewCount) {
+        nextItems = nextItems.slice(0, props.viewCount);
+      }
 
-    // Trim to viewCount and get trim information
-    const { trimmedItems, wasTrimmed, trimmedFromTop } = trimItemsToviewCount(mergedItems, direction);
-    
-    // Update anchor key if items were trimmed from top
-    if (direction === "up" && wasTrimmed && trimmedFromTop && trimmedItems.length > 0) {
-      // Original anchor might have been trimmed, use new first item
-      anchorKey = props.itemKey(trimmedItems[0] as T);
-    }
+      // Commit changes
+      props.onItemsChange?.(nextItems);
+      isUpLoading.value = false;
+      
+      // Restore scroll after layout completes
+      applyScrollRestore(props.useWindow ? upSpinnerHeight : 0);
+      
+    } else {
+      // Append new items
+      let nextItems = [...currentItems, ...newItems] as T[];
+      let didTrim = false;
 
-    // Commit the new items (this will hide the spinner)
-    props.onItemsChange?.(trimmedItems);
-    
-    // Hide spinner
-    if (direction === "up") isUpLoading.value = false;
-    else isDownLoading.value = false;
+      // Trim from top if needed
+      if (nextItems.length > props.viewCount) {
+        const countToRemove = nextItems.length - props.viewCount;
+        
+        // The element at index countToRemove in the CURRENT array will become
+        // the first element after trimming. Snapshot it NOW while it's still in the DOM.
+        const anchorKey = props.itemKey(nextItems[countToRemove] as T);
+        
+        // Snapshot before trimming - this element exists in current DOM
+        pendingRestoreRef.value = {
+          type: "down-trim",
+          anchor: snapshotAnchor(anchorKey),
+        };
+        
+        nextItems = nextItems.slice(countToRemove);
+        didTrim = true;
+      }
 
-    // Wait for DOM update (spinner removal + new items render)
-    await nextTick();
-    
-    // Restore scroll position for up-loads
-    if (direction === "up" && anchorKey) {
-      await restoreScrollAfterUpLoad(anchorKey, spinnerHeight);
+      // Commit changes
+      props.onItemsChange?.(nextItems);
+      isDownLoading.value = false;
+
+      if (didTrim) {
+        // Restore scroll after layout completes
+        applyScrollRestore();
+      } else {
+        isAdjustingRef.value = false;
+      }
     }
 
   } catch (error) {
     console.error(`[BidirectionalList] Load error (${direction}):`, error);
-  } finally {
-    // Clean up loading state (in case not already done)
-    if (direction === "up") isUpLoading.value = false;
+    if (isUp) isUpLoading.value = false;
     else isDownLoading.value = false;
-    
     isAdjustingRef.value = false;
-    
+  } finally {
     // Release lock after cooldown
     setTimeout(() => {
       loadingLockRef[direction] = false;
@@ -440,6 +469,7 @@ const setupObserver = (): void => {
   const top = topSentinelRef.value;
   const bottom = bottomSentinelRef.value;
   if (!top || !bottom || props.disable) return;
+  if (!props.hasNext && !props.hasPrevious) return;
 
   const root: HTMLElement | null = props.useWindow ? null : scrollViewRef.value;
   intersectionObserver.value = new IntersectionObserver(
@@ -476,7 +506,7 @@ onUnmounted(() => {
  * This ensures the observer configuration stays in sync with props.
  */
 watch(
-  [() => props.threshold, () => props.useWindow, () => props.disable],
+  [() => props.threshold, () => props.useWindow, () => props.disable, () => props.hasNext, () => props.hasPrevious],
   () => {
     intersectionObserver.value?.disconnect();
     nextTick(() => {
@@ -520,7 +550,7 @@ const containerStyles = computed<CSSProperties>(() => {
     <slot v-if="isDownLoading" name="spinner">
       <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
     </slot>
-    <div ref="bottomSentinelRef" :style="{ height: '10px', marginTop: '-10px' }" />
+    <div ref="bottomSentinelRef" :style="{ height: '1px', marginTop: '-1px' }" />
     <slot
       v-if="props.items.length === 0 && !isUpLoading && !isDownLoading"
       name="empty"

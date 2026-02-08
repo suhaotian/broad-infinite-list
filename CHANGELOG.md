@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.2.3
+
+- Fix(vue): scroll restoration not working on iOS Safari after load more
+
 ## v1.2.2
 
 - Keep use `use-next-tick` but with `useNextTickLayout` from new version of `use-next-tick`
