@@ -6,7 +6,7 @@ const result = await Bun.build({
   entrypoints: ["./src/react.tsx"],
   outdir: "./dist",
   format: "esm",
-  external: ["react", "react-dom", "react-native"],
+  external: ["react", "react-dom", "react-native", "use-next-tick"],
   minify: true,
   sourcemap: "linked",
   define: {

@@ -1,6 +1,6 @@
 {
   "name": "broad-infinite-list",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "The high performance and bidirectional scrolling infinite list component for React, Vue 3 and React Native",
   "repository": "suhaotian/broad-infinite-list",
   "bugs": "https://github.com/suhaotian/broad-infinite-list/issues",
@@ -31,6 +31,9 @@
     "rn-expo-example/**",
     "./**"
   ],
+  "dependencies": {
+    "use-next-tick": "^1.1.3"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19.2.10",

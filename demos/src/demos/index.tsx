@@ -95,16 +95,16 @@ export default function Demos() {
     );
   }
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-sky-100 text-slate-900">
+    <div className="min-h-screen min-h-[100dvh]! bg-slate-50 font-sans selection:bg-sky-100 text-slate-900">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 min-h-[100dvh]">
         {/* Header Section */}
-        <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <header className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 justify-between w-full">
               <h1 className="text-xl md:text-4xl font-black text-slate-900 leading-none tracking-tighter uppercase">
                 Broad Infinite List
               </h1>
-              {links}
+              <div className='flex items-center gap-2 absolute right-0'>{links}</div>
             </div>
             <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
               A high-performance, <strong>bidirectional infinite loader</strong>{" "}
@@ -113,7 +113,7 @@ export default function Demos() {
             </p>
           </div>
 
-          <nav className="flex p-1.5 bg-slate-200/60 backdrop-blur-sm rounded-2xl gap-1 shrink-0">
+          <nav className="flex p-1 md:p-2 bg-slate-200/60 backdrop-blur-sm rounded-2xl gap-1 shrink-0">
             {(["chat", "news", "logs", "chatgpt", "claude"] as const).map(
               (t) => (
                 <button
@@ -121,7 +121,7 @@ export default function Demos() {
                   onClick={() => {
                     location.href = location.pathname + "?demo=" + t;
                   }}
-                  className={`px-3 md:px-1 py-2.5 md:py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${
+                  className={`px-3 md:px-2 py-2.5 md:py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${
                     tab === t
                       ? "bg-white text-sky-600 shadow-md scale-105"
                       : "text-slate-500 hover:text-slate-800"

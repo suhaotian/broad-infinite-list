@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.2.2
+
+- Keep use `use-next-tick` but with `useNextTickLayout` from new version of `use-next-tick`
+
 ## v1.2.1
 
 - Revert `use-next-tick`, This causes scroll flashing in iOS Safari.

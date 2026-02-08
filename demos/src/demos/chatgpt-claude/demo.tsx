@@ -16,7 +16,7 @@ import {
   RotateCw,
   ArrowDown,
 } from "lucide-react";
-import useNextTick from "use-next-tick";
+import { useNextTickLayout as useNextTick } from "use-next-tick";
 import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
@@ -304,9 +304,9 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
             ? "bg-[#343541] border-white/10 text-gray-100"
             : "bg-white border-black/5 text-gray-800"
         }`}>
-        <div className="flex items-center gap-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md px-2 py-2 transition-colors">
+        <a href="/broad-infinite-list" className="flex items-center gap-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md px-2 py-2 transition-colors">
           <span className="font-semibold text-base">ChatGPT Demo</span>
-        </div>
+        </a>
         <div>{headerItem}</div>
       </header>
 
@@ -469,7 +469,7 @@ const ClaudeInterface: React.FC<ChatComponentProps> = ({
         className={`flex-none sticky top-0 z-50 flex items-center justify-between px-6 py-4 transition-colors duration-200 ${
           isDark ? "bg-[#1d1c1a] text-[#d1d1cf]" : "bg-[#f5f2e8] text-[#3e3e3c]"
         }`}>
-        <div className="flex items-center gap-3 select-none">
+        <a href="/broad-infinite-list" className="flex items-center gap-3 select-none">
           <div
             className={`p-1.5 rounded-lg ${
               isDark
@@ -483,7 +483,7 @@ const ClaudeInterface: React.FC<ChatComponentProps> = ({
               Claude Demo
             </span>
           </div>
-        </div>
+        </a>
         <div>{headerItem}</div>
       </header>
 
