@@ -3,7 +3,7 @@ import BidirectionalList, {
   type BidirectionalListRef,
 } from "broad-infinite-list/react";
 import { useState, useRef, useEffect } from "react";
-import useNextTick from "use-next-tick";
+import { useNextTickLayout as useNextTick } from "use-next-tick";
 
 export interface ChatMessage {
   id: number;
