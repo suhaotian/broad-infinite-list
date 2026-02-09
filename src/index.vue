@@ -205,11 +205,11 @@ const scrollTo = (top: number, behavior: ScrollBehavior = "smooth"): void => {
 };
 
 /** Scroll to an item by its key */
-const scrollToKey = (key: string, behavior?: ScrollBehavior): void => {
+const scrollToKey = (key: string, behavior?: ScrollBehavior, block: ScrollLogicalPosition = 'start'): void => {
   const containerEl = props.useWindow ? rootEl : scrollViewRef.value;
   const el = containerEl?.querySelector(`[data-id="${key}"]`);
   if (el) {
-    el.scrollIntoView({ behavior, block: "start" });
+    el.scrollIntoView({ behavior, block });
   }
 };
 

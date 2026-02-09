@@ -33,7 +33,7 @@ npm install broad-infinite-list
 ## Quick Start
 
 > [!CAUTION]
-> For vue3 or React Native usage, check the example in `vue-example/src/App.vue` or `rn-expo-example/app/(tabs)/index.tsx`
+> For vue3 or React Native usage, check the example in [`vue-example/src/App.vue`](./vue-example/src/App.vue) or [`rn-expo-example/app/(tabs)/index.tsx`](./rn-expo-example/app/(tabs)/index.tsx)
 
 > [!NOTE]
 > For React web, copy and paste the below demo code, then run it.
@@ -212,4 +212,4 @@ If you find this project helpful, consider [buying me a coffee](https://github.c
 
 - [xior](https://github.com/suhaotian/xior) - Tiny fetch library with plugins support and axios-like API
 - [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects
-- [useNextTick](https://github.com/suhaotian/use-next-tick) - Vue style `nextTick` but for react: Running callbacks after the DOM or native views have updated.
+- [useNextTick](https://github.com/suhaotian/use-next-tick) - `nextTick` but for react: Running callbacks after the DOM or native views have updated.

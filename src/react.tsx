@@ -19,7 +19,7 @@ export interface BidirectionalListRef {
   /** Scroll to a specific pixel offset from top */
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   /** Scroll to an item by its key */
-  scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
+  scrollToKey: (key: string, behavior?: ScrollBehavior,  block?: ScrollLogicalPosition) => void;
 }
 
 export interface BidirectionalListProps<T> {
@@ -189,9 +189,9 @@ export default function BidirectionalList<T>({
       ? ({ current: getRootEl() } as RefObject<HTMLElement>)
       : scrollViewRef,
     scrollTo,
-    scrollToKey(key, behavior) {
+    scrollToKey(key, behavior, block = 'start') {
       const el = findElementByKey(key);
-      if (el) el.scrollIntoView({ behavior, block: "start" });
+      if (el) el.scrollIntoView({ behavior, block });
     },
     scrollToTop(behavior) {
       scrollTo(0, behavior);
