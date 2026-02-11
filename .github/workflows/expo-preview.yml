@@ -16,6 +16,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: 'pnpm'
 
       - name: Build main project
         run: bun i && bun run build
@@ -27,7 +28,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
-        run: cd rn-expo-example && npm install
+        run: cd rn-expo-example && pnpm install
 
       - name: 🚀 Create update
         run: cd rn-expo-example && eas update --auto --non-interactive
