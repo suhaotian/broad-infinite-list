@@ -7,7 +7,7 @@
   "homepage": "https://suhaotian.github.io/broad-infinite-list",
   "type": "module",
   "main": "./dist/react.js",
-  "react-native": "./src/react-native.tsx",
+  "react-native": "./dist/react-native.js",
   "types": "./dist/react.d.ts",
   "exports": {
     "./react": {
@@ -16,7 +16,7 @@
     },
     "./react-native": {
       "types": "./dist/react-native.d.ts",
-      "react-native": "./src/react-native.tsx",
+      "react-native": "./dist/react-native.js",
       "require": "./dist/cjs/react-native.js",
       "import": "./dist/react-native.js"
     },
