@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "rn-expo-example",
-    "slug": "rn-expo-example",
+    "name": "broad-infinite-list-example",
+    "slug": "broad-infinite-list-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "rnexpoexample",
+    "scheme": "broadinfinitelistexample",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
