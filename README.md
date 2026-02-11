@@ -18,6 +18,13 @@
 - ChatGPT [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chatgpt)
 - Claude theme [Demo](https://suhaotian.github.io/broad-infinite-list?demo=claude)
 
+### Expo Demo Preview(ReactNative)
+
+> [!NOTE]
+> Scan it, then open it in Expo Go.
+
+![react native demo](https://qr.expo.dev/eas-update?projectId=3d41a411-7a6a-4539-b5ac-ec6e1c092115&groupId=631dcdad-84a3-4c60-aee0-f25aa3e6892e)
+
 **How It Works**
 
 Define a fixed window of visible items (e.g., 30 entries from a 100,000-record dataset). Load items entering the viewport as the user scrolls, and remove items leaving the viewport. This keeps rendered items constant and maintains smooth performance with large datasets.
