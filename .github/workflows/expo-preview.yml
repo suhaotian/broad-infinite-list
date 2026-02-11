@@ -15,8 +15,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: 'pnpm'
+          node-version: "24"
+
+      - name: Install PNPM
+        run: npm i -g pnpm
 
       - name: Build main project
         run: bun i && bun run build
