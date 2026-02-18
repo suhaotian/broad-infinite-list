@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "broad-infinite-list-example",
-    "slug": "broad-infinite-list-example",
+    "name": "my-expo-examples",
+    "slug": "my-expo-examples",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "broadinfinitelistexample",
+    "scheme": "myexpoexamples",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -47,9 +47,14 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "3d41a411-7a6a-4539-b5ac-ec6e1c092115"
+        "projectId": "6ff17c83-f729-41d7-832c-93b12ba3435e"
       }
     },
-    "owner": "jerry5am"
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6ff17c83-f729-41d7-832c-93b12ba3435e"
+    }
   }
 }

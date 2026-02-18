@@ -23,7 +23,7 @@
 > [!NOTE]
 > Scan it, then open it in Expo Go.
 
-![react native demo](https://qr.expo.dev/eas-update?projectId=3d41a411-7a6a-4539-b5ac-ec6e1c092115&groupId=631dcdad-84a3-4c60-aee0-f25aa3e6892e)
+![react native demo](https://qr.expo.dev/eas-update?projectId=6ff17c83-f729-41d7-832c-93b12ba3435e&groupId=715a0933-a3de-4942-8079-b7940eeedba2)
 
 **How It Works**
 

@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
 } from "broad-infinite-list/react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useNextTick from "use-next-tick";
 
 export interface ChatMessage {

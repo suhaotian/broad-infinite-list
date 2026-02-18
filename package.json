@@ -28,7 +28,6 @@
   "workspaces": [
     "demos/**",
     "vue-example/**",
-    "rn-expo-example/**",
     "./**"
   ],
   "dependencies": {
