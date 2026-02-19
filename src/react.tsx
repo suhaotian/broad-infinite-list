@@ -46,7 +46,7 @@ export interface BidirectionalListProps<T> {
   /** The list wrapper tag's className */
   listClassName?: string;
   /** The list item tag's className */
-  itemClassName?: string | ((item: T) => string);
+  itemClassName?: string | ((item: T, index: number) => string);
   /** Custom loading indicator shown during fetch */
   spinnerRow?: React.ReactNode;
   /** Content to display when items array is empty */
@@ -196,12 +196,12 @@ export default function BidirectionalList<T>({
   );
 
   const resolveItemClass = useCallback(
-    (item: T) => {
+    (item: T, index: number) => {
       if (!itemClassName) return "";
       if (typeof itemClassName === "string") {
         return itemClassName;
       }
-      return itemClassName(item);
+      return itemClassName(item, index);
     },
     [itemClassName]
   );
@@ -414,11 +414,11 @@ export default function BidirectionalList<T>({
       />
       {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
       <ContainerTag ref={listWrapperRef} className={listClassName}>
-        {items.map((item: T) => (
+        {items.map((item: T, index) => (
           <ItemTag
             key={itemKey(item)}
             data-id={itemKey(item)}
-            className={resolveItemClass(item)}>
+            className={resolveItemClass(item, index)}>
             {renderItem(item)}
           </ItemTag>
         ))}

@@ -116,7 +116,7 @@ const props = withDefaults(
     /** item element, default: div */
     itemAs?: React.ElementType;
     /** The list item tag's className */
-    itemClassName?: string | string[] | ((item: T) => string | string[]);
+    itemClassName?: string | string[] | ((item: T, index: number) => string | string[]);
     /** Maximum number of items to keep in DOM; older items are trimmed */
     viewCount?: number;
     /** Pixel distance from edge to trigger loading */
@@ -531,12 +531,12 @@ const containerStyles = computed<CSSProperties>(() => {
 
 const tag = props.as ?? 'div';
 const itemTag = props.itemAs ?? 'div';
-function resolveItemClass(item: T) {
+function resolveItemClass(item: T, index: number) {
   if (!props.itemClassName) return "";
   if (typeof props.itemClassName === "string" || Array.isArray(props.itemClassName)) {
     return props.itemClassName;
   }
-  return props.itemClassName(item);
+  return props.itemClassName(item, index);
 }
 </script>
 
@@ -554,10 +554,10 @@ function resolveItemClass(item: T) {
     <component :is='tag' ref="listWrapperRef" :class="props.listClassName">
       <component
         :is='itemTag'
-        v-for="item in props.items"
+        v-for="(item, index) in props.items"
         :key="props.itemKey(item)"
         :data-id="props.itemKey(item)"
-        :class='resolveItemClass(item)'
+        :class='resolveItemClass(item, index)'
       >
         <slot name="item" :item="item">
           {{ item }}

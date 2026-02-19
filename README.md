@@ -179,7 +179,7 @@ export default MyList;
 | `hasNext`       | `boolean`                                                 | Yes      | -           | Whether there are more items available below the current view                    |
 | `onItemsChange` | `(items: T[]) => void`                                    | No       | `undefined` | Called when the items array changes due to loading or trimming                   |
 | `className`     | `string`                                                  | No       | `undefined` | The container tag's className                                                    |
-| `itemClassName` | `string \| (items: T) => string`                          | No       | `undefined` | The item tag's className                                                         |
+| `itemClassName` | `string \| (items: T, index: number) => string`                          | No       | `undefined` | The item tag's className                                                         |
 | `listClassName` | `string`                                                  | No       | `undefined` | The list wrapper div's className                                                 |
 | `as`            | `string`                                                  | No       | `div`       | The list wrapper tag, default is div, example: as='ul'                           |
 | `itemAs`        | `string`                                                  | No       | `div`       | The item tag, default is div, example: itemAs='li'                               |
