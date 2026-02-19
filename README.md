@@ -40,7 +40,7 @@ npm install broad-infinite-list
 ## Quick Start
 
 > [!CAUTION]
-> For vue3 or React Native usage, check the example in [`vue-example/src/App.vue`](./vue-example/src/App.vue) or [`rn-expo-example/app/(tabs)/index.tsx`](./rn-expo-example/app/(tabs)/index.tsx)
+> For vue3 or React Native usage, check the example in [`vue-example/src/App.vue`](./vue-example/src/App.vue) or [`rn-expo-example/app/(tabs)/index.tsx`](<./rn-expo-example/app/(tabs)/index.tsx>)
 
 > [!NOTE]
 > For React web, copy and paste the below demo code, then run it.
@@ -178,8 +178,11 @@ export default MyList;
 | `hasPrevious`   | `boolean`                                                 | Yes      | -           | Whether there are more items available above the current view                    |
 | `hasNext`       | `boolean`                                                 | Yes      | -           | Whether there are more items available below the current view                    |
 | `onItemsChange` | `(items: T[]) => void`                                    | No       | `undefined` | Called when the items array changes due to loading or trimming                   |
-| `className`     | `string`                                                  | No       | `undefined` | The container div's className                                                    |
+| `className`     | `string`                                                  | No       | `undefined` | The container tag's className                                                    |
+| `itemClassName` | `string \| (items: T) => string`                          | No       | `undefined` | The item tag's className                                                         |
 | `listClassName` | `string`                                                  | No       | `undefined` | The list wrapper div's className                                                 |
+| `as`            | `string`                                                  | No       | `div`       | The list wrapper tag, default is div, example: as='ul'                           |
+| `itemAs`        | `string`                                                  | No       | `div`       | The item tag, default is div, example: itemAs='li'                               |
 | `spinnerRow`    | `React.ReactNode`                                         | No       | `undefined` | Custom loading indicator shown during fetch                                      |
 | `emptyState`    | `React.ReactNode`                                         | No       | `undefined` | Content to display when items array is empty                                     |
 | `viewCount`     | `number`                                                  | No       | `50`        | Maximum number of items to keep in DOM; older items are trimmed                  |

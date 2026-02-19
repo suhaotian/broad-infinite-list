@@ -111,6 +111,12 @@ const props = withDefaults(
     className?: string;
     /** The list wrapper div's className */
     listClassName?: string;
+    /** container element, default: div */
+    as?: React.ElementType;
+    /** item element, default: div */
+    itemAs?: React.ElementType;
+    /** The list item tag's className */
+    itemClassName?: string | string[] | ((item: T) => string | string[]);
     /** Maximum number of items to keep in DOM; older items are trimmed */
     viewCount?: number;
     /** Pixel distance from edge to trigger loading */
@@ -523,6 +529,15 @@ const containerStyles = computed<CSSProperties>(() => {
   return props.useWindow ? {} : { height: "100%", overflowY: "auto" };
 });
 
+const tag = props.as ?? 'div';
+const itemTag = props.itemAs ?? 'div';
+function resolveItemClass(item: T) {
+  if (!props.itemClassName) return "";
+  if (typeof props.itemClassName === "string" || Array.isArray(props.itemClassName)) {
+    return props.itemClassName;
+  }
+  return props.itemClassName(item);
+}
 </script>
 
 <template>
@@ -536,17 +551,19 @@ const containerStyles = computed<CSSProperties>(() => {
         <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
       </slot>
     </div>
-    <div ref="listWrapperRef" :class="props.listClassName">
-      <div
+    <component :is='tag' ref="listWrapperRef" :class="props.listClassName">
+      <component
+        :is='itemTag'
         v-for="item in props.items"
         :key="props.itemKey(item)"
         :data-id="props.itemKey(item)"
+        :class='resolveItemClass(item)'
       >
         <slot name="item" :item="item">
           {{ item }}
         </slot>
-      </div>
-    </div>
+      </component>
+    </component>
     <slot v-if="isDownLoading" name="spinner">
       <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
     </slot>

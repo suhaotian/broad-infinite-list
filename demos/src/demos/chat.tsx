@@ -135,49 +135,50 @@ export function ChatDemo() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 bg-slate-50">
-        <BidirectionalList<ChatMessage>
-          ref={listRef}
-          items={messages}
-          itemKey={(m) => m.id.toString()}
-          useWindow={false}
-          hasPrevious={hasPrevious}
-          hasNext={hasNext}
-          viewCount={VIEW_COUNT}
-          threshold={100}
-          onLoadMore={handleLoadMore}
-          onItemsChange={setMessages}
-          spinnerRow={
-            <div className="p-4 flex justify-center">
-              <div className="size-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            </div>
-          }
-          renderItem={(m) => (
+      <BidirectionalList<ChatMessage>
+        ref={listRef}
+        items={messages}
+        itemKey={(m) => m.id.toString()}
+        useWindow={false}
+        hasPrevious={hasPrevious}
+        hasNext={hasNext}
+        viewCount={VIEW_COUNT}
+        threshold={100}
+        onLoadMore={handleLoadMore}
+        onItemsChange={setMessages}
+        spinnerRow={
+          <div className="p-4 flex justify-center">
+            <div className="size-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }
+        className="flex-1 min-h-0 bg-slate-50"
+        as={"ul"}
+        itemAs={"li"}
+        itemClassName={(m) =>
+          `flex p-2 px-4 ${m.sender === "me" ? "justify-end" : "justify-start"}`
+        }
+        renderItem={(m) => (
+          <>
             <div
-              className={`flex p-2 px-4 ${
-                m.sender === "me" ? "justify-end" : "justify-start"
+              className={`max-w-[80%] p-3 rounded-2xl shadow-sm text-sm ${
+                m.sender === "me"
+                  ? "bg-blue-600 text-white rounded-br-none"
+                  : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
               }`}>
-              <div
-                className={`max-w-[80%] p-3 rounded-2xl shadow-sm text-sm ${
-                  m.sender === "me"
-                    ? "bg-blue-600 text-white rounded-br-none"
-                    : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
+              {m.text}
+              <span
+                className={`block text-[9px] mt-1 text-right uppercase font-bold tracking-tighter ${
+                  m.sender === "me" ? "text-blue-200" : "text-gray-300"
                 }`}>
-                {m.text}
-                <span
-                  className={`block text-[9px] mt-1 text-right uppercase font-bold tracking-tighter ${
-                    m.sender === "me" ? "text-blue-200" : "text-gray-300"
-                  }`}>
-                  {m.time}
-                </span>
-              </div>
+                {m.time}
+              </span>
             </div>
-          )}
-          disable={disable}
-          onScrollStart={onScrollStart}
-          onScrollEnd={onScrollEnd}
-        />
-      </div>
+          </>
+        )}
+        disable={disable}
+        onScrollStart={onScrollStart}
+        onScrollEnd={onScrollEnd}
+      />
 
       {showJump && (
         <button

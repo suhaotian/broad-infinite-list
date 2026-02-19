@@ -19,7 +19,11 @@ export interface BidirectionalListRef {
   /** Scroll to a specific pixel offset from top */
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   /** Scroll to an item by its key */
-  scrollToKey: (key: string, behavior?: ScrollBehavior,  block?: ScrollLogicalPosition) => void;
+  scrollToKey: (
+    key: string,
+    behavior?: ScrollBehavior,
+    block?: ScrollLogicalPosition
+  ) => void;
 }
 
 export interface BidirectionalListProps<T> {
@@ -33,10 +37,16 @@ export interface BidirectionalListProps<T> {
   onLoadMore: (direction: "up" | "down", refItem: T) => Promise<T[]>;
   /** Called when the items array changes due to loading or trimming */
   onItemsChange?: (items: T[]) => void;
+  /** container element, default: div */
+  as?: React.ElementType;
+  /** item element, default: div */
+  itemAs?: React.ElementType;
   /** The container div's className */
   className?: string;
-  /** The list wrapper div's className */
+  /** The list wrapper tag's className */
   listClassName?: string;
+  /** The list item tag's className */
+  itemClassName?: string | ((item: T) => string);
   /** Custom loading indicator shown during fetch */
   spinnerRow?: React.ReactNode;
   /** Content to display when items array is empty */
@@ -98,11 +108,14 @@ export default function BidirectionalList<T>({
   renderItem,
   onLoadMore,
   onItemsChange,
+  as = "div",
+  itemAs = "div",
   spinnerRow = (
     <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>
   ),
   className,
   listClassName,
+  itemClassName,
   emptyState,
   viewCount = 50,
   threshold = 10,
@@ -182,6 +195,17 @@ export default function BidirectionalList<T>({
     [useWindow]
   );
 
+  const resolveItemClass = useCallback(
+    (item: T) => {
+      if (!itemClassName) return "";
+      if (typeof itemClassName === "string") {
+        return itemClassName;
+      }
+      return itemClassName(item);
+    },
+    [itemClassName]
+  );
+
   // ── Imperative handle ───────────────────────────────────────────────────
 
   useImperativeHandle(ref, () => ({
@@ -189,7 +213,7 @@ export default function BidirectionalList<T>({
       ? ({ current: getRootEl() } as RefObject<HTMLElement>)
       : scrollViewRef,
     scrollTo,
-    scrollToKey(key, behavior, block = 'start') {
+    scrollToKey(key, behavior, block = "start") {
       const el = findElementByKey(key);
       if (el) el.scrollIntoView({ behavior, block });
     },
@@ -379,6 +403,9 @@ export default function BidirectionalList<T>({
     ? {}
     : { height: "100%", overflowY: "auto" };
 
+  const ContainerTag = as || "div";
+  const ItemTag = itemAs || "div";
+
   return (
     <div ref={scrollViewRef} style={containerStyles} className={className}>
       <div
@@ -386,13 +413,16 @@ export default function BidirectionalList<T>({
         style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
       />
       {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
-      <div ref={listWrapperRef} className={listClassName}>
+      <ContainerTag ref={listWrapperRef} className={listClassName}>
         {items.map((item: T) => (
-          <div key={itemKey(item)} data-id={itemKey(item)}>
+          <ItemTag
+            key={itemKey(item)}
+            data-id={itemKey(item)}
+            className={resolveItemClass(item)}>
             {renderItem(item)}
-          </div>
+          </ItemTag>
         ))}
-      </div>
+      </ContainerTag>
       {isDownLoading && spinnerRow}
       <div ref={bottomSentinelRef} style={{ height: 1, marginTop: -1 }} />
       {items.length === 0 && !isUpLoading && !isDownLoading && emptyState}

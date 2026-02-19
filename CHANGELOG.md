@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.3.0
+
+- Feat(react/vue): Support new props: `as` / `itemAs` / `itemClassName`
+
 ## v1.2.3
 
 - Fix(vue): scroll restoration not working on iOS Safari after load more
