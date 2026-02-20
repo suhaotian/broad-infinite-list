@@ -198,7 +198,7 @@ const renderFooter = () => {
           You May Be Also Interested In:
         </span>
         <a
-          href="https://npmjs.com/suhaotian/xior"
+          href="https://github.com/suhaotian/xior"
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-2 text-sm font-bold text-sky-500 hover:text-sky-700 transition-colors">
