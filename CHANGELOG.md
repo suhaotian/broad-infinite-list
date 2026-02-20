@@ -2,9 +2,10 @@
 
 ## v1.3.0
 
-- Feat(react/vue): Support new props: `as` / `itemAs` / `itemClassName`
+- Feat(React/Vue): Support new props: `containerAs` / `as` / `itemAs` / `itemClassName` / `itemStyle`
 - Feat(ReactNative): Add `ScrollViewProps` support
-- Feat(all): add `getTopDistance() => number` or `getBottomDistance() => number` to ref
+- Feat(All): add `getTopDistance() => number` and `getBottomDistance() => number` to ref
+- Feat(React/Vue): add `headerSlot` and `footerSlot` for **table** usecase
 
 ## v1.2.3
 

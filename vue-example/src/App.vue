@@ -166,13 +166,13 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
         <button class='text-[10px] text-white shadow font-bold bg-sky-500 rounded-lg px-2 py-1 cursor-pointer' @click='toggleUseWindow'>useWindow: {{ useWindowRef }}</button>
       </div>
     </div>
+    <div class='flex-1 min-h-0 bg-slate-50 pb-20'>
       <BidirectionalList
         :key='useWindowRef ? 1 : 2'
         ref="listRef"
         as='ul'
         itemAs='li'
         :item-class-name="m => ['flex p-2 px-4', m.sender === 'me' ? 'justify-end' : 'justify-start']"
-        list-class-name='flex-1 min-h-0 bg-slate-50 pb-20'
         :items="messages"
         :item-key="itemKey"
         :use-window="useWindowRef"
@@ -213,6 +213,7 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
             </div>
         </template>
       </BidirectionalList>
+      </div>
 
     <button
       v-if="showJump"

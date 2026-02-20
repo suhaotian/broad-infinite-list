@@ -12,6 +12,7 @@ import {
   HomeIcon,
 } from "lucide-react";
 import E2EDemo from "./e2e";
+import MyTableList from "./table";
 
 window.onerror = (e) => {
   alert(e);
@@ -36,7 +37,7 @@ const links = (
 
 export default function Demos() {
   const [tab] = useState<
-    "news" | "logs" | "chat" | "e2e" | "chatgpt" | "claude"
+    "news" | "logs" | "chat" | "e2e" | "chatgpt" | "claude" | "table"
   >(() => {
     return typeof document !== "undefined"
       ? ((new URL(location.href).searchParams?.get("demo") || "chat") as "chat")
@@ -53,6 +54,9 @@ export default function Demos() {
 
   if (tab === "e2e") {
     return <E2EDemo />;
+  }
+  if (tab === "table") {
+    return <MyTableList />;
   }
   if (tab === "chatgpt") {
     return (
@@ -104,12 +108,15 @@ export default function Demos() {
               <h1 className="text-xl md:text-4xl font-black text-slate-900 leading-none tracking-tighter uppercase">
                 Broad Infinite List
               </h1>
-              <div className='flex items-center gap-2 absolute right-0'>{links}</div>
+              <div className="flex items-center gap-2 absolute right-0">
+                {links}
+              </div>
             </div>
             <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
               A high-performance, <strong>bidirectional infinite loader</strong>{" "}
-              for large list rendering, support React, React Native and Vue. Smoothly stream logs, feed
-              updates, or chat history in both directions without layout shifts.
+              for large list rendering, support React, React Native and Vue.
+              Smoothly stream logs, feed updates, or chat history in both
+              directions without layout shifts.
             </p>
           </div>
 

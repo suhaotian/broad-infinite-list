@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   type ForwardedRef,
   type RefObject,
+  type CSSProperties,
 } from "react";
 import { useNextTickLayout as useNextTick } from "use-next-tick";
 
@@ -42,6 +43,8 @@ export interface BidirectionalListProps<T> {
   /** Called when the items array changes due to loading or trimming */
   onItemsChange?: (items: T[]) => void;
   /** container element, default: div */
+  containerAs?: React.ElementType;
+  /** list wrapper element, default: div */
   as?: React.ElementType;
   /** item element, default: div */
   itemAs?: React.ElementType;
@@ -50,7 +53,8 @@ export interface BidirectionalListProps<T> {
   /** The list wrapper tag's className */
   listClassName?: string;
   /** The list item tag's className */
-  itemClassName?: string | ((item: T, index: number) => string);
+  itemClassName?: string | ((item: T, index: number) => string | undefined);
+  itemStyle?: CSSProperties | ((item: T, index: number) => CSSProperties | undefined);
   /** Custom loading indicator shown during fetch */
   spinnerRow?: React.ReactNode;
   /** Content to display when items array is empty */
@@ -71,6 +75,10 @@ export interface BidirectionalListProps<T> {
   onScrollStart?: () => void;
   /** Called when a programmatic scroll adjustment ends */
   onScrollEnd?: () => void;
+  /** for table */
+  headerSlot?: ({ children }: { children: React.ReactNode }) => React.ReactNode;
+  /** for table */
+  footerSlot?: ({ children }: { children: React.ReactNode }) => React.ReactNode;
 }
 export type LoadDirection = "up" | "down";
 
@@ -112,6 +120,7 @@ export default function BidirectionalList<T>({
   renderItem,
   onLoadMore,
   onItemsChange,
+  containerAs = "div",
   as = "div",
   itemAs = "div",
   spinnerRow = (
@@ -120,6 +129,7 @@ export default function BidirectionalList<T>({
   className,
   listClassName,
   itemClassName,
+  itemStyle,
   emptyState,
   viewCount = 50,
   threshold = 10,
@@ -130,6 +140,8 @@ export default function BidirectionalList<T>({
   disable,
   onScrollStart,
   onScrollEnd,
+  headerSlot = ({ children }) => children,
+  footerSlot = ({ children }) => children,
 }: BidirectionalListProps<T> & {
   ref?: ForwardedRef<BidirectionalListRef>;
 }) {
@@ -208,6 +220,16 @@ export default function BidirectionalList<T>({
       return itemClassName(item, index);
     },
     [itemClassName]
+  );
+  const resolveItemStyle = useCallback(
+    (item: T, index: number) => {
+      if (!itemStyle) return {};
+      if (typeof itemStyle === "object") {
+        return itemStyle;
+      }
+      return itemStyle(item, index);
+    },
+    [itemStyle]
   );
 
   const getTopDistance = useCallback(() => {
@@ -422,33 +444,51 @@ export default function BidirectionalList<T>({
     return () => obs.disconnect();
   }, [threshold, handleLoad, useWindow, disable, hasNext, hasPrevious]);
 
-  const containerStyles: React.CSSProperties = useWindow
+  const containerStyles: CSSProperties = useWindow
     ? {}
     : { height: "100%", overflowY: "auto" };
 
-  const ContainerTag = as || "div";
+  const ContainerTag = containerAs || "div";
+  const ListWrapperTag = as || "div";
   const ItemTag = itemAs || "div";
 
   return (
-    <div ref={scrollViewRef} style={containerStyles} className={className}>
-      <div
-        ref={topSentinelRef}
-        style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
-      />
-      {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
-      <ContainerTag ref={listWrapperRef} className={listClassName}>
+    <ContainerTag
+      ref={scrollViewRef}
+      style={containerStyles}
+      className={className}>
+      {headerSlot({
+        children: (
+          <>
+            <div
+              ref={topSentinelRef}
+              style={{ height: 1, marginBottom: -1, overflowAnchor: "none" }}
+            />
+            {isUpLoading && <div ref={spinnerWrapperRef}>{spinnerRow}</div>}
+          </>
+        ),
+      })}
+
+      <ListWrapperTag ref={listWrapperRef} className={listClassName}>
         {items.map((item: T, index) => (
           <ItemTag
             key={itemKey(item)}
             data-id={itemKey(item)}
-            className={resolveItemClass(item, index)}>
+            className={resolveItemClass(item, index)}
+            style={resolveItemStyle(item, index)}>
             {renderItem(item)}
           </ItemTag>
         ))}
-      </ContainerTag>
-      {isDownLoading && spinnerRow}
-      <div ref={bottomSentinelRef} style={{ height: 1, marginTop: -1 }} />
+      </ListWrapperTag>
+      {footerSlot({
+        children: (
+          <>
+            {isDownLoading && spinnerRow}
+            <div ref={bottomSentinelRef} style={{ height: 1, marginTop: -1 }} />
+          </>
+        ),
+      })}
       {items.length === 0 && !isUpLoading && !isDownLoading && emptyState}
-    </div>
+    </ContainerTag>
   );
 }

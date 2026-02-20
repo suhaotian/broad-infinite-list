@@ -5,7 +5,7 @@
  * A highly optimized infinite scroll list that loads content in both directions (up and down).
  * Maintains viewport performance by trimming items outside the viewCount limit.
  * 
- * Usage:
+ * Usage (standard div-based):
  * ```vue
  * <BidirectionalList
  *   ref="listRef"
@@ -22,6 +22,45 @@
  * </BidirectionalList>
  * ```
  * 
+ * Usage (table-based):
+ * When containerAs="table", raw <div> sentinels and spinners are invalid HTML.
+ * Use the #header and #footer slots to wrap them in valid table structure.
+ * The component renders the sentinel/spinner elements INSIDE the slot;
+ * your slot template provides the outer table wrapper (thead/tfoot/tr/td).
+ * 
+ * ```vue
+ * <BidirectionalList
+ *   containerAs="table"
+ *   as="tbody"
+ *   itemAs="tr"
+ *   :items="items"
+ *   :item-key="(item) => item.id"
+ *   :on-load-more="handleLoadMore"
+ *   :on-items-change="handleItemsChange"
+ *   :has-previous="true"
+ *   :has-next="true"
+ * >
+ *   <!-- header slot wraps: top sentinel + up-spinner -->
+ *   <template #header>
+ *     <thead>
+ *       <tr><td colspan="5"><slot /></td></tr>
+ *     </thead>
+ *   </template>
+ * 
+ *   <!-- footer slot wraps: down-spinner + bottom sentinel + empty state -->
+ *   <template #footer>
+ *     <tfoot>
+ *       <tr><td colspan="5"><slot /></td></tr>
+ *     </tfoot>
+ *   </template>
+ * 
+ *   <template #item="{ item }">
+ *     <td>{{ item.name }}</td>
+ *     <td>{{ item.value }}</td>
+ *   </template>
+ * </BidirectionalList>
+ * ```
+ * 
  * @module BidirectionalList
  */
 
@@ -34,6 +73,7 @@ import {
   nextTick,
   type Ref,
   type CSSProperties,
+  type Component,
 } from "vue";
 
 
@@ -43,9 +83,9 @@ export interface BidirectionalListRef {
   scrollToBottom: (behavior?: ScrollBehavior) => void;
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
-  /** get Current distnace to top */
+  /** get Current distance to top */
   getTopDistance: () => number;
-  /** get Current distnace to bottom */
+  /** get Current distance to bottom */
   getBottomDistance: () => number;
 }
 
@@ -73,6 +113,44 @@ export interface BidirectionalListSlots<T> {
    * This is the equivalent of the React emptyState prop.
    */
   empty(): any;
+
+  /**
+   * Optional slot for wrapping the top sentinel and up-spinner.
+   * Use this when containerAs="table" to provide valid table structure.
+   * 
+   * The component renders sentinel + spinner INSIDE this slot's default slot.
+   * You control the outer table wrapper (thead/tr/td).
+   * 
+   * When this slot is NOT provided, the sentinel and spinner render as plain divs
+   * directly inside the container (correct for default div-based usage).
+   * 
+   * Example:
+   * ```vue
+   * <template #header>
+   *   <thead><tr><td colspan="5"><slot /></td></tr></thead>
+   * </template>
+   * ```
+   */
+  header(): any;
+
+  /**
+   * Optional slot for wrapping the down-spinner, bottom sentinel, and empty state.
+   * Use this when containerAs="table" to provide valid table structure.
+   * 
+   * The component renders spinner + sentinel + empty INSIDE this slot's default slot.
+   * You control the outer table wrapper (tfoot/tr/td).
+   * 
+   * When this slot is NOT provided, the spinner, sentinel, and empty state render
+   * as plain divs directly inside the container (correct for default div-based usage).
+   * 
+   * Example:
+   * ```vue
+   * <template #footer>
+   *   <tfoot><tr><td colspan="5"><slot /></td></tr></tfoot>
+   * </template>
+   * ```
+   */
+  footer(): any;
 }
 
 type LoadDirection = "up" | "down";
@@ -115,12 +193,9 @@ const props = withDefaults(
     className?: string;
     /** The list wrapper div's className */
     listClassName?: string;
-    /** container element, default: div */
-    as?: React.ElementType;
-    /** item element, default: div */
-    itemAs?: React.ElementType;
     /** The list item tag's className */
     itemClassName?: string | string[] | ((item: T, index: number) => string | string[]);
+    itemStyle?: CSSProperties | ((item: T, index: number) => CSSProperties | undefined);
     /** Maximum number of items to keep in DOM; older items are trimmed */
     viewCount?: number;
     /** Pixel distance from edge to trigger loading */
@@ -137,6 +212,12 @@ const props = withDefaults(
     onScrollStart?: () => void;
     /** Called when a programmatic scroll adjustment ends */
     onScrollEnd?: () => void;
+    /** container element, default: div */
+    containerAs?: string | Component;
+    /** list wrapper element, default: div */
+    as?: string | Component;
+    /** item element, default: div */
+    itemAs?: string | Component;
   }>(),
   {
     viewCount: 50,
@@ -153,15 +234,15 @@ const MIN_SCROLL_DELTA = 1;
 
 /** Next tick layout helper for Safari-compatible timing */
 const nextTickLayout = (callback: () => void): Promise<void> => {
-    return new Promise((resolve) => {
-      nextTick(() => {
-        requestAnimationFrame(() => {
-          callback();
-          resolve();
-        });
+  return new Promise((resolve) => {
+    nextTick(() => {
+      requestAnimationFrame(() => {
+        callback();
+        resolve();
       });
     });
-  };
+  });
+};
 
 /** Reference to the scrollable container element */
 const scrollViewRef = ref<HTMLElement | null>(null);
@@ -237,23 +318,22 @@ const scrollToBottom = (behavior?: ScrollBehavior): void => {
   }
 };
 
+const getTopDistance = () => {
+  const container = props.useWindow ? rootEl : scrollViewRef.value;
+  return (container?.scrollTop || 0) as number;
+};
 
-  const getTopDistance = () => {
-    const container = props.useWindow ? rootEl : scrollViewRef.value;
-    return (container?.scrollTop || 0) as number;
-  }
+const getBottomDistance = () => {
+  const container = props.useWindow ? rootEl : scrollViewRef.value;
+  if (!container) return 0;
 
-  const getBottomDistance = () => {
-    const container = props.useWindow ? rootEl : scrollViewRef.value;
-    if (!container) return 0;
-
-    // scrollHeight: Total height of the content
-    // scrollTop: How far we've scrolled from the top
-    // clientHeight: The visible height of the container
-    return (
-      container.scrollHeight - container.scrollTop - container.clientHeight
-    );
-  }
+  // scrollHeight: Total height of the content
+  // scrollTop: How far we've scrolled from the top
+  // clientHeight: The visible height of the container
+  return (
+    container.scrollHeight - container.scrollTop - container.clientHeight
+  );
+};
 
 /**
  * Expose public API to parent components via template ref.
@@ -553,8 +633,10 @@ const containerStyles = computed<CSSProperties>(() => {
   return props.useWindow ? {} : { height: "100%", overflowY: "auto" };
 });
 
-const tag = props.as ?? 'div';
+const containerTag = props.containerAs ?? 'div';
+const listWrapperTag = props.as ?? 'div';
 const itemTag = props.itemAs ?? 'div';
+
 function resolveItemClass(item: T, index: number) {
   if (!props.itemClassName) return "";
   if (typeof props.itemClassName === "string" || Array.isArray(props.itemClassName)) {
@@ -562,39 +644,111 @@ function resolveItemClass(item: T, index: number) {
   }
   return props.itemClassName(item, index);
 }
+
+function resolveItemStyle(item: T, index: number) {
+  if (!props.itemStyle) return {};
+  if (typeof props.itemStyle === "object" || Array.isArray(props.itemStyle)) {
+    return props.itemStyle;
+  }
+  return props.itemStyle(item, index);
+}
 </script>
 
 <template>
-  <div ref="scrollViewRef" :style="containerStyles" :class="props.className">
-    <div
-      ref="topSentinelRef"
-      :style="{ height: '1px', marginBottom: '-1px', overflowAnchor: 'none' }"
-    />
-    <div v-if="isUpLoading" ref="spinnerWrapperRef">
-      <slot name="spinner">
-        <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
+  <component :is="containerTag" ref="scrollViewRef" :style="containerStyles" :class="props.className">
+
+    <!--
+      HEADER SLOT (optional):
+      When provided, the consumer controls the outer wrapper (e.g. <thead><tr><td>).
+      The sentinel and up-spinner are rendered INSIDE the slot's default outlet.
+      When NOT provided, they render as plain divs — correct for div-based lists.
+
+      Table usage example:
+        <template #header>
+          <thead><tr><td colspan="5"><slot /></td></tr></thead>
+        </template>
+    -->
+    <template v-if="$slots.header">
+      <slot name="header">
+        <!-- sentinel and spinner render here via the slot's inner <slot /> -->
+        <div
+          ref="topSentinelRef"
+          :style="{ height: '1px', marginBottom: '-1px', overflowAnchor: 'none' }"
+        />
+        <div v-if="isUpLoading" ref="spinnerWrapperRef">
+          <slot name="spinner">
+            <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
+          </slot>
+        </div>
       </slot>
-    </div>
-    <component :is='tag' ref="listWrapperRef" :class="props.listClassName">
+    </template>
+
+    <!-- Default header: plain divs for non-table containers -->
+    <template v-else>
+      <div
+        ref="topSentinelRef"
+        :style="{ height: '1px', marginBottom: '-1px', overflowAnchor: 'none' }"
+      />
+      <div v-if="isUpLoading" ref="spinnerWrapperRef">
+        <slot name="spinner">
+          <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
+        </slot>
+      </div>
+    </template>
+
+    <!-- List items -->
+    <component :is="listWrapperTag" ref="listWrapperRef" :class="props.listClassName">
       <component
-        :is='itemTag'
+        :is="itemTag"
         v-for="(item, index) in props.items"
         :key="props.itemKey(item)"
         :data-id="props.itemKey(item)"
-        :class='resolveItemClass(item, index)'
+        :class="resolveItemClass(item, index)"
+        :style="resolveItemStyle(item, index)"
       >
         <slot name="item" :item="item">
           {{ item }}
         </slot>
       </component>
     </component>
-    <slot v-if="isDownLoading" name="spinner">
-      <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
-    </slot>
-    <div ref="bottomSentinelRef" :style="{ height: '1px', marginTop: '-1px' }" />
-    <slot
-      v-if="props.items.length === 0 && !isUpLoading && !isDownLoading"
-      name="empty"
-    />
-  </div>
+
+    <!--
+      FOOTER SLOT (optional):
+      When provided, the consumer controls the outer wrapper (e.g. <tfoot><tr><td>).
+      The down-spinner, bottom sentinel, and empty state are rendered INSIDE the slot's
+      default outlet.
+      When NOT provided, they render as plain divs — correct for div-based lists.
+
+      Table usage example:
+        <template #footer>
+          <tfoot><tr><td colspan="5"><slot /></td></tr></tfoot>
+        </template>
+    -->
+    <template v-if="$slots.footer">
+      <slot name="footer">
+        <!-- down-spinner, sentinel, empty state render here via the slot's inner <slot /> -->
+        <slot v-if="isDownLoading" name="spinner">
+          <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
+        </slot>
+        <div ref="bottomSentinelRef" :style="{ height: '1px', marginTop: '-1px' }" />
+        <slot
+          v-if="props.items.length === 0 && !isUpLoading && !isDownLoading"
+          name="empty"
+        />
+      </slot>
+    </template>
+
+    <!-- Default footer: plain divs for non-table containers -->
+    <template v-else>
+      <slot v-if="isDownLoading" name="spinner">
+        <div :style="{ padding: '20px', textAlign: 'center' }">Loading...</div>
+      </slot>
+      <div ref="bottomSentinelRef" :style="{ height: '1px', marginTop: '-1px' }" />
+      <slot
+        v-if="props.items.length === 0 && !isUpLoading && !isDownLoading"
+        name="empty"
+      />
+    </template>
+
+  </component>
 </template>
