@@ -43,6 +43,10 @@ export interface BidirectionalListRef {
   scrollToBottom: (behavior?: ScrollBehavior) => void;
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
+  /** get Current distnace to top */
+  getTopDistance: () => number;
+  /** get Current distnace to bottom */
+  getBottomDistance: () => number;
 }
 
 /**
@@ -233,6 +237,24 @@ const scrollToBottom = (behavior?: ScrollBehavior): void => {
   }
 };
 
+
+  const getTopDistance = () => {
+    const container = props.useWindow ? rootEl : scrollViewRef.value;
+    return (container?.scrollTop || 0) as number;
+  }
+
+  const getBottomDistance = () => {
+    const container = props.useWindow ? rootEl : scrollViewRef.value;
+    if (!container) return 0;
+
+    // scrollHeight: Total height of the content
+    // scrollTop: How far we've scrolled from the top
+    // clientHeight: The visible height of the container
+    return (
+      container.scrollHeight - container.scrollTop - container.clientHeight
+    );
+  }
+
 /**
  * Expose public API to parent components via template ref.
  * This allows imperative control of scrolling from outside the component.
@@ -243,6 +265,8 @@ defineExpose<BidirectionalListRef>({
   scrollToKey,
   scrollToTop,
   scrollToBottom,
+  getTopDistance,
+  getBottomDistance,
 });
 
 /** Get current scroll position (works for both window and container scroll) */

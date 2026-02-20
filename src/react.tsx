@@ -24,6 +24,10 @@ export interface BidirectionalListRef {
     behavior?: ScrollBehavior,
     block?: ScrollLogicalPosition
   ) => void;
+  /** get Current distnace to top */
+  getTopDistance: () => number;
+  /** get Current distnace to bottom */
+  getBottomDistance: () => number;
 }
 
 export interface BidirectionalListProps<T> {
@@ -206,6 +210,23 @@ export default function BidirectionalList<T>({
     [itemClassName]
   );
 
+  const getTopDistance = useCallback(() => {
+    const container = useWindow ? getRootEl() : scrollViewRef.current;
+    return (container?.scrollTop || 0) as number;
+  }, [useWindow]);
+
+  const getBottomDistance = useCallback(() => {
+    const container = useWindow ? getRootEl() : scrollViewRef.current;
+    if (!container) return 0;
+
+    // scrollHeight: Total height of the content
+    // scrollTop: How far we've scrolled from the top
+    // clientHeight: The visible height of the container
+    return (
+      container.scrollHeight - container.scrollTop - container.clientHeight
+    );
+  }, [useWindow]);
+
   // ── Imperative handle ───────────────────────────────────────────────────
 
   useImperativeHandle(ref, () => ({
@@ -224,6 +245,8 @@ export default function BidirectionalList<T>({
       const container = useWindow ? getRootEl() : scrollViewRef.current;
       if (container) scrollTo(container.scrollHeight, behavior);
     },
+    getTopDistance,
+    getBottomDistance,
   }));
 
   // ── Scroll restoration (runs in nextTick after React commits) ───────────

@@ -57,9 +57,11 @@ onMounted(() => {
   const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
   messages.value = initialMessages;
   if (initialMessages.length > 0) {
+    console.log(listRef.value?.getTopDistance(),listRef.value?.getBottomDistance())
     nextTick(() => {
       listRef.value?.scrollToBottom('instant');
       disable.value = false;
+      console.log(listRef.value?.getTopDistance(),listRef.value?.getBottomDistance())
     })
   }
 });

@@ -44,9 +44,20 @@ export function ChatDemo() {
     );
     const messages = ALL_MESSAGES.slice(-VIEW_COUNT);
     setMessages(messages);
+
+    console.log(
+      listRef.current?.getBottomDistance(),
+      listRef.current?.getTopDistance()
+    );
     nextTick(() => {
       listRef.current?.scrollToBottom("instant");
       setDisable(false);
+      setTimeout(() => {
+        console.log(
+          listRef.current?.getBottomDistance(),
+          listRef.current?.getTopDistance()
+        );
+      }, 100);
     });
   }, []);
 

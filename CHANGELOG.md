@@ -3,6 +3,8 @@
 ## v1.3.0
 
 - Feat(react/vue): Support new props: `as` / `itemAs` / `itemClassName`
+- Feat(ReactNative): Add `ScrollViewProps` support
+- Feat(all): add `getTopDistance() => number` or `getBottomDistance() => number` to ref
 
 ## v1.2.3
 

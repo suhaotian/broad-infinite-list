@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useNextTick from "use-next-tick";
@@ -62,6 +63,37 @@ export default function ChatDemoScreen() {
     });
   }, []);
 
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      // setKeyboardVisible(true);
+      console.log(
+        listRef.current?.getBottomDistance(),
+        listRef.current?.getTopDistance()
+      );
+      setTimeout(() => {
+        console.log(
+          listRef.current?.getBottomDistance(),
+          listRef.current?.getTopDistance()
+        );
+        listRef.current?.scrollToBottom(true);
+      }, 50);
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      // setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const handleLoadMore: BidirectionalListProps<ChatMessage>["onLoadMore"] =
     async (direction, refItem) => {
       await new Promise((r) => setTimeout(r, 1000));
@@ -100,10 +132,18 @@ export default function ChatDemoScreen() {
 
   const onScrollStart = () => {
     console.log("Start scroll");
+    console.log(
+      listRef.current?.getBottomDistance(),
+      listRef.current?.getTopDistance()
+    );
   };
 
   const onScrollEnd = () => {
     console.log("Finish scroll");
+    console.log(
+      listRef.current?.getBottomDistance(),
+      listRef.current?.getTopDistance()
+    );
   };
 
   const sendMessage = () => {
@@ -130,7 +170,7 @@ export default function ChatDemoScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}>
+      keyboardVerticalOffset={0}>
       <View style={[styles.chatCard, { paddingTop: insets.top }]}>
         {/* Header */}
         <View style={styles.header}>
@@ -209,6 +249,9 @@ export default function ChatDemoScreen() {
             disable={disable}
             onScrollStart={onScrollStart}
             onScrollEnd={onScrollEnd}
+            scrollViewProps={{
+              keyboardDismissMode: "on-drag",
+            }}
           />
         </View>
 

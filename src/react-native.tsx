@@ -12,6 +12,7 @@ import {
   View,
   Text,
   ScrollView,
+  type ScrollViewProps,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ViewStyle,
@@ -30,6 +31,10 @@ export interface BidirectionalListRef {
   scrollTo: (y: number, animated?: boolean) => void;
   /** Scroll to an item by its key */
   scrollToKey: (key: string, animated?: boolean) => void;
+  /** get Current distnace to top */
+  getTopDistance: () => number;
+  /** get Current distnace to bottom */
+  getBottomDistance: () => number;
 }
 
 export interface BidirectionalListProps<T> {
@@ -65,6 +70,7 @@ export interface BidirectionalListProps<T> {
   onScrollStart?: () => void;
   /** Called when a programmatic scroll adjustment ends */
   onScrollEnd?: () => void;
+  scrollViewProps?: ScrollViewProps;
 }
 
 type Direction = "up" | "down";
@@ -90,8 +96,9 @@ function BidirectionalListInner<T>(
     disable,
     onScrollStart,
     onScrollEnd,
+    scrollViewProps,
   }: BidirectionalListProps<T>,
-  ref: React.Ref<BidirectionalListRef>
+  ref?: React.Ref<BidirectionalListRef>
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
@@ -225,6 +232,16 @@ function BidirectionalListInner<T>(
     [scrollTo]
   );
 
+  const getTopDistance = useCallback(() => {
+    const { scrollY } = metrics.current;
+    return scrollY;
+  }, []);
+
+  const getBottomDistance = useCallback(() => {
+    const { contentHeight, viewportHeight, scrollY } = metrics.current;
+    return contentHeight - scrollY - viewportHeight;
+  }, []);
+
   const scrollToKey = useCallback(
     (key: string, animated = true) => {
       const y = measureItemY(key);
@@ -241,8 +258,17 @@ function BidirectionalListInner<T>(
       scrollToKey,
       scrollToTop,
       scrollToBottom,
+      getTopDistance,
+      getBottomDistance,
     }),
-    [scrollTo, scrollToKey, scrollToTop, scrollToBottom]
+    [
+      scrollTo,
+      scrollToKey,
+      scrollToTop,
+      scrollToBottom,
+      getTopDistance,
+      getBottomDistance,
+    ]
   );
 
   const setItemRef = useCallback((key: string, view: View | null) => {
@@ -466,6 +492,7 @@ function BidirectionalListInner<T>(
 
   return (
     <ScrollView
+      {...scrollViewProps}
       ref={scrollViewRef}
       style={[{ flex: 1 }, containerStyle]}
       onScroll={handleScroll}
