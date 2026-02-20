@@ -179,7 +179,7 @@ export default MyList;
 | `hasNext`       | `boolean`                                                 | Yes      | -           | Whether there are more items available below the current view                    |
 | `onItemsChange` | `(items: T[]) => void`                                    | No       | `undefined` | Called when the items array changes due to loading or trimming                   |
 | `className`     | `string`                                                  | No       | `undefined` | The container tag's className                                                    |
-| `itemClassName` | `string \| (items: T, index: number) => string`                          | No       | `undefined` | The item tag's className                                                         |
+| `itemClassName` | `string \| (items: T, index: number) => string`           | No       | `undefined` | The item tag's className                                                         |
 | `listClassName` | `string`                                                  | No       | `undefined` | The list wrapper div's className                                                 |
 | `as`            | `string`                                                  | No       | `div`       | The list wrapper tag, default is div, example: as='ul'                           |
 | `itemAs`        | `string`                                                  | No       | `div`       | The item tag, default is div, example: itemAs='li'                               |
@@ -194,13 +194,15 @@ export default MyList;
 
 ### BidirectionalListRef
 
-| Property         | Type                                               | Required | Default | Description                                   |
-| ---------------- | -------------------------------------------------- | -------- | ------- | --------------------------------------------- |
-| `scrollViewRef`  | `RefObject<HTMLElement \| null>`                   | Yes      | -       | Reference to the scrollable container element |
-| `scrollToTop`    | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the top of the list                 |
-| `scrollToBottom` | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the bottom of the list              |
-| `scrollTo`       | `(top: number, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to a specific pixel offset from top    |
-| `scrollToKey`    | `(key: string, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to an item by its key                  |
+| Property            | Type                                               | Required | Default | Description                                   |
+| ------------------- | -------------------------------------------------- | -------- | ------- | --------------------------------------------- |
+| `scrollViewRef`     | `RefObject<HTMLElement \| null>`                   | Yes      | -       | Reference to the scrollable container element |
+| `scrollToTop`       | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the top of the list                 |
+| `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the bottom of the list              |
+| `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to a specific pixel offset from top    |
+| `scrollToKey`       | `(key: string, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to an item by its key                  |
+| `getTopDistance`    | `() => number`                                     | Yes      | -       | Get Current distnace to top                   |
+| `getBottomDistance` | `() => number`                                     | Yes      | -       | Get Current distnace to bottom                |
 
 ## Development
 
