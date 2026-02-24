@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.3.1
+
+- Fix(all): List gets stuck when onLoadMore returns [] with sentinel still visible. Ref: [issues#7](https://github.com/suhaotian/broad-infinite-list/issues/7)
+- Example(react): Add `Infinite-List-to-Detail` Demo and close [issue#6](https://github.com/suhaotian/broad-infinite-list/issues/6). Visit [demo](https://suhaotian.github.io/broad-infinite-list/?demo=news)
+- Others: fix typos
+
 ## v1.3.0
 
 - Feat(React/Vue): Support new props: `containerAs` / `as` / `itemAs` / `itemClassName` / `itemStyle`
