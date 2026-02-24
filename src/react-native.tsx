@@ -363,6 +363,7 @@ function BidirectionalListInner<T>(
 
       loadLock.current[direction] = true;
       isAdjustingRef.current = true;
+      let released = false;
       if (isUp) setIsUpLoading(true);
       else setIsDownLoading(true);
 
@@ -377,6 +378,8 @@ function BidirectionalListInner<T>(
           if (isUp) setIsUpLoading(false);
           else setIsDownLoading(false);
           isAdjustingRef.current = false;
+          released = true;
+          loadLock.current[direction] = false;
           return;
         }
 
@@ -425,11 +428,13 @@ function BidirectionalListInner<T>(
         else setIsDownLoading(false);
         isAdjustingRef.current = false;
       } finally {
-        setTimeout(() => {
-          if (mounted.current) {
-            loadLock.current[direction] = false;
-          }
-        }, LOAD_COOLDOWN_MS);
+        if (!released) {
+          setTimeout(() => {
+            if (mounted.current) {
+              loadLock.current[direction] = false;
+            }
+          }, LOAD_COOLDOWN_MS);
+        }
       }
     },
     [

@@ -25,9 +25,9 @@ export interface BidirectionalListRef {
     behavior?: ScrollBehavior,
     block?: ScrollLogicalPosition
   ) => void;
-  /** get Current distnace to top */
+  /** Get current distance to top */
   getTopDistance: () => number;
-  /** get Current distnace to bottom */
+  /** Get current distance to bottom */
   getBottomDistance: () => number;
 }
 
@@ -307,6 +307,7 @@ export default function BidirectionalList<T>({
 
       loadingLockRef.current[direction] = true;
       isAdjustingRef.current = true;
+      let released = false;
 
       if (isUp) {
         setIsUpLoading(true);
@@ -344,6 +345,9 @@ export default function BidirectionalList<T>({
           if (isUp) setIsUpLoading(false);
           else setIsDownLoading(false);
           isAdjustingRef.current = false;
+          released = true;
+          loadingLockRef.current[direction] = false;
+          pendingRestoreRef.current = null;
           return;
         }
 
@@ -391,9 +395,11 @@ export default function BidirectionalList<T>({
         else setIsDownLoading(false);
         isAdjustingRef.current = false;
       } finally {
-        setTimeout(() => {
-          loadingLockRef.current[direction] = false;
-        }, LOAD_COOLDOWN_MS);
+        if (!released) {
+          setTimeout(() => {
+            loadingLockRef.current[direction] = false;
+          }, LOAD_COOLDOWN_MS);
+        }
       }
     },
     [
