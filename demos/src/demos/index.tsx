@@ -45,7 +45,7 @@ export default function Demos() {
   });
 
   const sourceFiles = {
-    news: "news-feed/news-feed-list.tsx.tsx",
+    news: "news-feed/news-feed-list.tsx",
     logs: "logs-stream.tsx",
     chat: "chat.tsx",
     chatgpt: "chatgpt-claude/demo.tsx",
