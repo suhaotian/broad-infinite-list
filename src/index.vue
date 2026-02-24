@@ -462,6 +462,7 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
   // Acquire locks and set loading state
   loadingLockRef[direction] = true;
   isAdjustingRef.value = true;
+  let released = false;
 
   const isUp = direction === "up";
   let upSpinnerHeight = 0;
@@ -503,6 +504,8 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
       if (isUp) isUpLoading.value = false;
       else isDownLoading.value = false;
       isAdjustingRef.value = false;
+      released = true;
+      loadingLockRef[direction] = false;
       return;
     }
 
@@ -564,9 +567,11 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
     isAdjustingRef.value = false;
   } finally {
     // Release lock after cooldown
-    setTimeout(() => {
-      loadingLockRef[direction] = false;
-    }, LOAD_COOLDOWN_MS);
+    if (!released) {
+      setTimeout(() => {
+        loadingLockRef[direction] = false;
+      }, LOAD_COOLDOWN_MS);
+    }
   }
 };
 

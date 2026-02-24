@@ -205,8 +205,8 @@ export default MyList;
 | `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the bottom of the list              |
 | `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to a specific pixel offset from top    |
 | `scrollToKey`       | `(key: string, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to an item by its key                  |
-| `getTopDistance`    | `() => number`                                     | Yes      | -       | Get Current distnace to top                   |
-| `getBottomDistance` | `() => number`                                     | Yes      | -       | Get Current distnace to bottom                |
+| `getTopDistance`    | `() => number`                                     | Yes      | -       | Get current distance to top                   |
+| `getBottomDistance` | `() => number`                                     | Yes      | -       | Get Current distance to bottom                |
 
 ## Development
 
