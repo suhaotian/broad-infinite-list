@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NewsFeedDemo } from "./news-feed";
+import NewsFeedDemo from "./news-feed";
 import { ChatDemo } from "./chat";
 import { LogsDemo } from "./logs-stream";
 import ChatGPTClaude from "./chatgpt-claude/demo";

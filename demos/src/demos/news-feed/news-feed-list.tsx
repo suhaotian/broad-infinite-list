@@ -3,6 +3,9 @@ import BidirectionalList, {
   type BidirectionalListRef,
 } from "broad-infinite-list/react";
 import { useState, useRef, useEffect } from "react";
+import { Link } from "../../components/hash-route";
+import { useNextTickLayout as useNextTick } from "use-next-tick";
+import { ChevronRight } from "lucide-react";
 
 export interface NewsItem {
   id: number;
@@ -28,13 +31,49 @@ const generateNews = (id: number): NewsItem => ({
 });
 let ALL_NEWS: NewsItem[] = [];
 
-export function NewsFeedDemo() {
-  const [items, setItems] = useState<NewsItem[]>([]);
+let currentItems: NewsItem[] = [];
+let topDistance = 0;
+
+export default function NewsFeedDemo() {
+  const unmountRef = useRef(false);
+  const [disable, setDisable] = useState(true);
+  const [items, setItems] = useState<NewsItem[]>(currentItems);
+  const nextTick = useNextTick();
+
+  useEffect(() => {
+    if (items.length > 0) {
+      currentItems = items;
+    }
+  }, [items]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      topDistance = listRef.current?.getTopDistance() as number;
+    };
+    window.addEventListener?.("scroll", onScroll);
+
+    return () => {
+      window.removeEventListener?.("scroll", onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     ALL_NEWS = Array.from({ length: TOTAL_COUNT }, (_, i) => generateNews(i));
     ALL_NEWS.reverse();
-    setItems(ALL_NEWS.slice(0, VIEW_COUNT));
+    if (currentItems.length > 0 && topDistance) {
+      setItems(currentItems);
+    } else {
+      setItems(ALL_NEWS.slice(0, VIEW_COUNT));
+    }
+    setDisable(false);
+    nextTick(() => {
+      if (listRef.current?.scrollViewRef?.current) {
+        listRef.current.scrollViewRef.current.scrollTop = topDistance;
+      }
+    });
+    return () => {
+      unmountRef.current = true;
+    };
   }, []);
 
   const handleLoadMore: BidirectionalListProps<NewsItem>["onLoadMore"] = async (
@@ -42,6 +81,7 @@ export function NewsFeedDemo() {
     refItem
   ) => {
     await new Promise((r) => setTimeout(r, 200));
+    if (unmountRef.current) return [];
     const idx = ALL_NEWS.findIndex((n) => n.id === refItem.id);
     if (idx === -1) return [];
 
@@ -83,6 +123,7 @@ export function NewsFeedDemo() {
       </div>
 
       <BidirectionalList<NewsItem>
+        disable={disable}
         ref={listRef}
         items={items}
         itemKey={(m) => m.id.toString()}
@@ -99,7 +140,9 @@ export function NewsFeedDemo() {
           </div>
         }
         renderItem={(item) => (
-          <div className="p-8 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+          <Link
+            to={`/detail?id=${item.id}&title=${item.title}`}
+            className="relative block p-8 border-b border-gray-50 hover:bg-gray-50 transition-colors">
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">
               {item.category}
             </span>
@@ -109,7 +152,8 @@ export function NewsFeedDemo() {
             <p className="text-gray-400 text-sm mt-2 font-medium">
               Published {item.time}
             </p>
-          </div>
+            <ChevronRight className="size-8 absolute right-4 top-12 text-sky-500" />
+          </Link>
         )}
         onScrollStart={onScrollStart}
         onScrollEnd={onScrollEnd}
