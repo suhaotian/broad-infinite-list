@@ -31,9 +31,9 @@ export interface BidirectionalListRef {
   scrollTo: (y: number, animated?: boolean) => void;
   /** Scroll to an item by its key */
   scrollToKey: (key: string, animated?: boolean) => void;
-  /** get Current distnace to top */
+  /** Get current distance to top */
   getTopDistance: () => number;
-  /** get Current distnace to bottom */
+  /** Get current distance to bottom */
   getBottomDistance: () => number;
 }
 
