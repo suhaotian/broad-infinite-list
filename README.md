@@ -12,7 +12,7 @@
 ## Demos
 
 - Chat Messages List [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
-- News feed list & detail(Scroll Position Preservation when navigation back) [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
+- News feed list & detail(Scroll Restoration when navigation back) [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
 - Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
 - Vue Chat [Demo](https://suhaotian.github.io/broad-infinite-list/vue?demo=chat)
 - ChatGPT [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chatgpt)
