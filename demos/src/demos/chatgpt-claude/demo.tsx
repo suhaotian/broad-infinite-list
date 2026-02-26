@@ -466,7 +466,7 @@ const ClaudeInterface: React.FC<ChatComponentProps> = ({
       }`}>
       {/* Header */}
       <header
-        className={`flex-none sticky top-0 z-50 flex items-center justify-between px-6 py-4 transition-colors duration-200 ${
+        className={`flex-none sticky top-0 z-50 flex items-center justify-between px-2 py-3 shadow md:px-6 md:py-4 transition-colors duration-200 ${
           isDark ? "bg-[#1d1c1a] text-[#d1d1cf]" : "bg-[#f5f2e8] text-[#3e3e3c]"
         }`}>
         <a href="/broad-infinite-list" className="flex items-center gap-3 select-none">

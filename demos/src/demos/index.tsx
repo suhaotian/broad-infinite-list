@@ -100,15 +100,15 @@ export default function Demos() {
   }
   return (
     <div className="min-h-screen min-h-[100dvh]! bg-slate-50 font-sans selection:bg-sky-100 text-slate-900">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 min-h-[100dvh]">
+      <div className="max-w-4xl mx-auto py-8 space-y-6 min-h-[100dvh]">
         {/* Header Section */}
-        <header className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <header className="relative px-3 md:px-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
           <div className="space-y-3">
-            <div className="flex items-center gap-3 justify-between w-full">
+            <div className="flex items-center gap-2 md:gap-3 justify-between w-full">
               <h1 className="text-xl md:text-4xl font-black text-slate-900 leading-none tracking-tighter uppercase">
                 Broad Infinite List
               </h1>
-              <div className="flex items-center gap-2 absolute right-0">
+              <div className="flex items-center gap-2 absolute right-4">
                 {links}
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function Demos() {
                   onClick={() => {
                     location.href = location.pathname + "?demo=" + t;
                   }}
-                  className={`px-3 md:px-2 py-2.5 md:py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${
+                  className={`px-2 md:px-2 py-2.5 md:py-2 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${
                     tab === t
                       ? "bg-white text-sky-600 shadow-md scale-105"
                       : "text-slate-500 hover:text-slate-800"
@@ -142,7 +142,7 @@ export default function Demos() {
 
         {/* Demo Stage */}
         <main className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="md:absolute md:-top-12 md:right-0 mb-6 md:mb-0">
+          <div className="md:absolute md:-top-12 md:right-0 mb-6 md:mb-0 px-2">
             <a
               href={`https://github.com/suhaotian/broad-infinite-list/blob/main/demos/src/demos/${sourceFiles[tab]}`}
               target="_blank"
@@ -153,7 +153,7 @@ export default function Demos() {
             </a>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60">
+          <div className="bg-white px-2 rounded-3xl shadow-xl shadow-slate-200/60">
             {tab === "news" && <NewsFeedDemo />}
             {tab === "logs" && <LogsDemo />}
             {tab === "chat" && <ChatDemo />}
