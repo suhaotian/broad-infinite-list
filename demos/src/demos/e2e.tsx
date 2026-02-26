@@ -2,7 +2,7 @@
 
 import type { LoadDirection } from "broad-infinite-list/react";
 import BidirectionalList from "broad-infinite-list/react";
-import { useState, useCallback, type ReactNode } from "react";
+import { useState, useCallback, type ReactNode, useImperativeHandle, type ForwardedRef, useRef } from "react";
 import { Node } from "./node";
 
 // =============================================================================
@@ -111,9 +111,31 @@ function computeBounds(items: DemoItem[]): {
 // ListDemo — owns state for one BidirectionalList instance
 // =============================================================================
 
-function ListDemo({ useWindow }: { useWindow: boolean }): ReactNode {
+function ListDemo({
+  useWindow,
+  ref,
+  overflowAnchor,
+}: {
+  useWindow: boolean;
+  ref: ForwardedRef<{ triggerBug(): void}>;
+  overflowAnchor: "auto" | "none";
+}): ReactNode {
   const [items, setItems] = useState<DemoItem[]>(() => getInitialPage(30));
   const { hasPrevious, hasNext } = computeBounds(items);
+
+  const triggerBug = useCallback(() => {
+    const newItems = Array.from({ length: 5 }, (_: unknown, i: number) =>
+      generateItem(TOTAL_ITEMS + i)
+    );
+    for (const item of newItems) {
+      item.id = nextId();
+    }
+    setItems((prevItems) => [...newItems, ...prevItems]);
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    triggerBug,
+  }));
 
   // Stable callback — fetchPage is a module-level pure function so no deps.
   const handleLoadMore = useCallback(
@@ -140,6 +162,7 @@ function ListDemo({ useWindow }: { useWindow: boolean }): ReactNode {
       hasPrevious={hasPrevious}
       hasNext={hasNext}
       emptyState="No items"
+      itemStyle={{overflowAnchor}}
     />
   );
 }
@@ -210,6 +233,8 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 export default function E2ETests(): ReactNode {
   const [activeTab, setActiveTab] = useState<TabId>("container");
   const isWindowMode = activeTab === "window";
+  const listDemoRef = useRef<{ triggerBug(): void }>(null);
+  const [overflowAnchor, setOverflowAnchor] = useState<"auto" | "none">("auto");
 
   return (
     <>
@@ -265,6 +290,21 @@ export default function E2ETests(): ReactNode {
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
                 {TOTAL_ITEMS} items · pages of {PAGE_SIZE} · max window {30}
               </div>
+              <button onClick={() => listDemoRef.current?.triggerBug()}>
+                🐛 Trigger Bug
+              </button>{" "}
+              <label>
+                <input
+                  type="checkbox"
+                  checked={overflowAnchor === "auto"}
+                  onChange={() =>
+                    setOverflowAnchor(
+                      overflowAnchor === "auto" ? "none" : "auto",
+                    )
+                  }
+                />{" "}
+                {overflowAnchor}
+              </label>
             </div>
 
             {/* Tab switcher */}
@@ -323,11 +363,30 @@ export default function E2ETests(): ReactNode {
           {/* Keyed on activeTab so each mode remounts fresh */}
           <div
             key={activeTab}
-            style={isWindowMode ? {} : { flex: 1, minHeight: 0 }}>
-            <ListDemo useWindow={isWindowMode} key={isWindowMode ? 1 : 2} />
+            style={isWindowMode ? {} : { flex: 1, minHeight: 0 }}
+          >
+            <ListDemo
+              useWindow={isWindowMode}
+              key={isWindowMode ? 1 : 2}
+              ref={listDemoRef}
+              overflowAnchor={overflowAnchor}
+            />
           </div>
         </div>
       </div>
     </>
   );
+}
+
+/**
+ * Creates the next PRNG id.
+ */
+let prngState = 0x9e3779b9;
+
+function nextId(): number {
+  prngState ^= prngState << 13;
+  prngState ^= prngState >>> 17;
+  prngState ^= prngState << 5;
+  const value = prngState >>> 0;
+  return -(TOTAL_ITEMS + 1 + (value % 1_000_000_000));
 }
