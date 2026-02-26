@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useNextTickLayout as useNextTick } from "use-next-tick";
 
-export interface BidirectionalListRef {
+export interface BidirectionalListRef<T = any> {
   /** Reference to the scrollable container element */
   scrollViewRef: RefObject<HTMLElement | null>;
   /** Scroll to the top of the list */
@@ -21,7 +21,7 @@ export interface BidirectionalListRef {
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
   /** Scroll to an item by its key */
   scrollToKey: (
-    key: string,
+    key: string | number,
     behavior?: ScrollBehavior,
     block?: ScrollLogicalPosition
   ) => void;
@@ -29,13 +29,18 @@ export interface BidirectionalListRef {
   getTopDistance: () => number;
   /** Get current distance to bottom */
   getBottomDistance: () => number;
+  /** Manual handle load */
+  handleLoad: (
+    direction: "up" | "down",
+    loadMore: () => T[] | Promise<T[]>
+  ) => void;
 }
 
 export interface BidirectionalListProps<T> {
   /** Current array of items to display */
   items: T[];
   /** Function to extract a unique key from each item */
-  itemKey: (item: T) => string;
+  itemKey: (item: T) => string | number;
   /** Function to render each item */
   renderItem: (item: T) => React.ReactNode;
   /** Called when more items should be loaded; returns the new items to prepend/append */
@@ -54,7 +59,9 @@ export interface BidirectionalListProps<T> {
   listClassName?: string;
   /** The list item tag's className */
   itemClassName?: string | ((item: T, index: number) => string | undefined);
-  itemStyle?: CSSProperties | ((item: T, index: number) => CSSProperties | undefined);
+  itemStyle?:
+    | CSSProperties
+    | ((item: T, index: number) => CSSProperties | undefined);
   /** Custom loading indicator shown during fetch */
   spinnerRow?: React.ReactNode;
   /** Content to display when items array is empty */
@@ -88,10 +95,10 @@ const getRootEl = () => document.documentElement;
 
 /** Snapshot an element's visual position relative to the viewport/container top. */
 function snapshotAnchor(
-  key: string,
-  findElementByKey: (key: string) => Element | null,
+  key: string | number,
+  findElementByKey: (key: string | number) => Element | null,
   getViewportTop: () => number
-): { key: string; offset: number } | null {
+): { key: string | number; offset: number } | null {
   const el = findElementByKey(key);
   if (!el) return null;
   return { key, offset: el.getBoundingClientRect().top - getViewportTop() };
@@ -102,8 +109,8 @@ function snapshotAnchor(
  * at its previous visual offset. Returns 0 if not applicable.
  */
 function computeAnchorDelta(
-  anchor: { key: string; offset: number } | null,
-  findElementByKey: (key: string) => Element | null,
+  anchor: { key: string | number; offset: number } | null,
+  findElementByKey: (key: string | number) => Element | null,
   getViewportTop: () => number
 ): number {
   if (!anchor) return 0;
@@ -143,7 +150,7 @@ export default function BidirectionalList<T>({
   headerSlot = ({ children }) => children,
   footerSlot = ({ children }) => children,
 }: BidirectionalListProps<T> & {
-  ref?: ForwardedRef<BidirectionalListRef>;
+  ref?: ForwardedRef<BidirectionalListRef<T>>;
 }) {
   const nextTick = useNextTick();
 
@@ -166,7 +173,7 @@ export default function BidirectionalList<T>({
   // Pending scroll-restoration info, set before React commits, consumed in nextTick
   const pendingRestoreRef = useRef<{
     type: "prepend" | "down-trim";
-    anchor: { key: string; offset: number } | null;
+    anchor: { key: string | number; offset: number; scrollTop?: number } | null;
   } | null>(null);
 
   const [isUpLoading, setIsUpLoading] = useState(false);
@@ -203,7 +210,7 @@ export default function BidirectionalList<T>({
   }, [useWindow]);
 
   const findElementByKey = useCallback(
-    (key: string): Element | null => {
+    (key: string | number): Element | null => {
       const container = useWindow ? getRootEl() : scrollViewRef.current;
       if (!container) return null;
       return container.querySelector(`[data-id="${key}"]`);
@@ -269,6 +276,12 @@ export default function BidirectionalList<T>({
     },
     getTopDistance,
     getBottomDistance,
+    handleLoad: (
+      direction: "up" | "down",
+      loadMore: () => T[] | Promise<T[]>
+    ) => {
+      handleLoad(direction, loadMore);
+    },
   }));
 
   // ── Scroll restoration (runs in nextTick after React commits) ───────────
@@ -286,7 +299,7 @@ export default function BidirectionalList<T>({
       findElementByKey,
       getViewportTop
     );
-    if (delta !== 0) setScrollTop(getScrollTop() + delta);
+    if (delta !== 0) setScrollTop(getScrollTop() + delta + (pending.anchor?.scrollTop ?? 0));
 
     isAdjustingRef.current = false;
   }, [findElementByKey, getViewportTop, getScrollTop, setScrollTop]);
@@ -294,27 +307,43 @@ export default function BidirectionalList<T>({
   // ── Load handler ────────────────────────────────────────────────────────
 
   const handleLoad = useCallback(
-    async (direction: LoadDirection): Promise<void> => {
+    async (
+      direction: LoadDirection,
+      loadMore?: () => T[] | Promise<T[]>
+    ): Promise<void> => {
       if (disable) return;
 
+      const _setIsUpLoading = (loading: boolean) => {
+        if (loadMore) return;
+        setIsUpLoading(loading);
+      };
+      const _setIsDownLoading = (loading: boolean) => {
+        if (loadMore) return;
+        setIsDownLoading(loading);
+      };
       const isUp = direction === "up";
-      if (isUp && !hasPrevious) return;
-      if (!isUp && !hasNext) return;
+      if (!loadMore) {
+        if (isUp && !hasPrevious) return;
+        if (!isUp && !hasNext) return;
+      }
       if (loadingLockRef.current[direction]) return;
 
       const currentItems = itemsRef.current;
       if (currentItems.length === 0) return;
 
       loadingLockRef.current[direction] = true;
+      if (loadMore) {
+        loadingLockRef.current[direction === "up" ? "down" : "up"] = true;
+      }
       isAdjustingRef.current = true;
       let released = false;
 
       if (isUp) {
-        setIsUpLoading(true);
+        _setIsUpLoading(true);
         // Wait for spinner to render so we can measure it as the anchor offset.
         // The first visible item sits below the spinner, so its visual offset
         // equals the spinner height.
-        nextTick(() => {
+        const onNextTick = () => {
           const spinnerHeight =
             spinnerWrapperRef.current?.getBoundingClientRect().height ?? 0;
           const firstKey =
@@ -326,12 +355,13 @@ export default function BidirectionalList<T>({
             // because the anchor sat directly below the spinner before new items appeared.
             pendingRestoreRef.current = {
               type: "prepend",
-              anchor: { key: firstKey, offset: spinnerHeight },
+              anchor: { key: firstKey, offset: spinnerHeight, scrollTop: loadMore ? getScrollTop() : 0 },
             };
           }
-        });
+        };
+        loadMore ? onNextTick() : nextTick(onNextTick);
       } else {
-        setIsDownLoading(true);
+        _setIsDownLoading(true);
       }
 
       try {
@@ -339,14 +369,19 @@ export default function BidirectionalList<T>({
           ? (currentItems[0] as T)
           : (currentItems[currentItems.length - 1] as T);
 
-        const newItems = await onLoadMore(direction, refItem);
+        const newItems = await (loadMore
+          ? new Promise((r) => setTimeout(r, 200)).then(() => loadMore())
+          : onLoadMore(direction, refItem));
 
         if (newItems.length === 0) {
-          if (isUp) setIsUpLoading(false);
-          else setIsDownLoading(false);
+          if (isUp) _setIsUpLoading(false);
+          else _setIsDownLoading(false);
           isAdjustingRef.current = false;
           released = true;
           loadingLockRef.current[direction] = false;
+          if (loadMore) {
+            loadingLockRef.current[direction === "up" ? "down" : "up"] = false;
+          }
           pendingRestoreRef.current = null;
           return;
         }
@@ -358,7 +393,7 @@ export default function BidirectionalList<T>({
           }
 
           onItemsChange?.(nextItems);
-          setIsUpLoading(false);
+          _setIsUpLoading(false);
           nextTick(applyScrollRestore);
         } else {
           let nextItems = [...currentItems, ...newItems];
@@ -382,7 +417,7 @@ export default function BidirectionalList<T>({
           }
 
           onItemsChange?.(nextItems);
-          setIsDownLoading(false);
+          _setIsDownLoading(false);
 
           if (didTrim) {
             nextTick(applyScrollRestore);
@@ -391,13 +426,19 @@ export default function BidirectionalList<T>({
           }
         }
       } catch {
-        if (isUp) setIsUpLoading(false);
-        else setIsDownLoading(false);
+        {
+          if (isUp) _setIsUpLoading(false);
+          else _setIsDownLoading(false);
+        }
         isAdjustingRef.current = false;
       } finally {
         if (!released) {
           setTimeout(() => {
             loadingLockRef.current[direction] = false;
+            if (loadMore) {
+              loadingLockRef.current[direction === "up" ? "down" : "up"] =
+                false;
+            }
           }, LOAD_COOLDOWN_MS);
         }
       }

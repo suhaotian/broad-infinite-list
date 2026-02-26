@@ -30,7 +30,7 @@ export interface BidirectionalListRef {
   /** Scroll to a specific pixel offset from top */
   scrollTo: (y: number, animated?: boolean) => void;
   /** Scroll to an item by its key */
-  scrollToKey: (key: string, animated?: boolean) => void;
+  scrollToKey: (key: string | number, animated?: boolean) => void;
   /** Get current distance to top */
   getTopDistance: () => number;
   /** Get current distance to bottom */
@@ -41,7 +41,7 @@ export interface BidirectionalListProps<T> {
   /** Current array of items to display */
   items: T[];
   /** Function to extract a unique key from each item */
-  itemKey: (item: T) => string;
+  itemKey: (item: T) => string | number;
   /** Function to render each item */
   renderItem: (item: T) => React.ReactNode;
   /** Called when more items should be loaded; returns the new items to prepend/append */
@@ -130,13 +130,13 @@ function BidirectionalListInner<T>(
   const [commitId, setCommitId] = useState(0);
 
   // Scroll-restoration state for prepend (up-load)
-  const anchorKeyRef = useRef<string | null>(null);
+  const anchorKeyRef = useRef<string | null | number>(null);
   const spinnerHeightRef = useRef(0);
   const isPrependRef = useRef(false);
 
   // Scroll-restoration state for down-trim
   const isDownTrimRef = useRef(false);
-  const downTrimAnchorKeyRef = useRef<string | null>(null);
+  const downTrimAnchorKeyRef = useRef<string | null | number>(null);
   const downTrimAnchorOffsetRef = useRef(0);
 
   useEffect(() => {
@@ -161,8 +161,8 @@ function BidirectionalListInner<T>(
    * Measure an item's Y offset relative to the ScrollView content root.
    * Synchronous on Fabric (New Architecture).
    */
-  const measureItemY = useCallback((key: string): number | null => {
-    const itemView = itemRefs.current.get(key);
+  const measureItemY = useCallback((key: string | number): number | null => {
+    const itemView = itemRefs.current.get(key+'');
     const content = contentRef.current;
     if (!itemView || !content) return null;
 
@@ -243,7 +243,7 @@ function BidirectionalListInner<T>(
   }, []);
 
   const scrollToKey = useCallback(
-    (key: string, animated = true) => {
+    (key: string | number, animated = true) => {
       const y = measureItemY(key);
       if (y !== null) scrollTo(y, animated);
     },
@@ -271,9 +271,9 @@ function BidirectionalListInner<T>(
     ]
   );
 
-  const setItemRef = useCallback((key: string, view: View | null) => {
-    if (view) itemRefs.current.set(key, view);
-    else itemRefs.current.delete(key);
+  const setItemRef = useCallback((key: string | number, view: View | null) => {
+    if (view) itemRefs.current.set(key+'', view);
+    else itemRefs.current.delete(key+'');
   }, []);
 
   // --- Scroll restoration (mirrors web version) ---

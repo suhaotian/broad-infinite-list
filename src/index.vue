@@ -82,7 +82,7 @@ export interface BidirectionalListRef {
   scrollToTop: (behavior?: ScrollBehavior) => void;
   scrollToBottom: (behavior?: ScrollBehavior) => void;
   scrollTo: (top: number, behavior?: ScrollBehavior) => void;
-  scrollToKey: (key: string, behavior?: ScrollBehavior) => void;
+  scrollToKey: (key: string | number, behavior?: ScrollBehavior) => void;
   /** get Current distance to top */
   getTopDistance: () => number;
   /** get Current distance to bottom */
@@ -160,7 +160,7 @@ type LoadDirection = "up" | "down";
  * Stores an element's key and its visual offset from the viewport/container top.
  */
 interface ScrollAnchor {
-  key: string;
+  key: string | number;
   offset: number;
 }
 
@@ -184,7 +184,7 @@ const props = withDefaults(
     /** Current array of items to display */
     items: T[];
     /** Function to extract a unique key from each item */
-    itemKey: (item: T) => string;
+    itemKey: (item: T) => string | number;
     /** Called when more items should be loaded; returns the new items to prepend/append */
     onLoadMore: (direction: "up" | "down", refItem: T) => Promise<T[]>;
     /** Called when the items array changes due to loading or trimming */
@@ -296,7 +296,7 @@ const scrollTo = (top: number, behavior: ScrollBehavior = "smooth"): void => {
 };
 
 /** Scroll to an item by its key */
-const scrollToKey = (key: string, behavior?: ScrollBehavior, block: ScrollLogicalPosition = 'start'): void => {
+const scrollToKey = (key: string | number, behavior?: ScrollBehavior, block: ScrollLogicalPosition = 'start'): void => {
   const containerEl = props.useWindow ? rootEl : scrollViewRef.value;
   const el = containerEl?.querySelector(`[data-id="${key}"]`);
   if (el) {
@@ -370,7 +370,7 @@ const getViewportTop = (): number => {
 };
 
 /** Find a list item element by its data-id attribute */
-const findElementByKey = (key: string): Element | null => {
+const findElementByKey = (key: string | number): Element | null => {
   const wrapper = props.useWindow ? rootEl : scrollViewRef.value;
   if (!wrapper) return null;
   return wrapper.querySelector(`[data-id="${key}"]`);
@@ -383,7 +383,7 @@ const findElementByKey = (key: string): Element | null => {
  * @param key - The data-id of the element to snapshot
  * @returns ScrollAnchor object or null if element not found
  */
-const snapshotAnchor = (key: string): ScrollAnchor | null => {
+const snapshotAnchor = (key: string | number): ScrollAnchor | null => {
   const el = findElementByKey(key);
   if (!el) return null;
   return {
