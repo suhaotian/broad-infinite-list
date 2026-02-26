@@ -153,7 +153,7 @@ export default function Demos() {
             </a>
           </div>
 
-          <div className="bg-white px-2 rounded-3xl shadow-xl shadow-slate-200/60">
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60">
             {tab === "news" && <NewsFeedDemo />}
             {tab === "logs" && <LogsDemo />}
             {tab === "chat" && <ChatDemo />}
