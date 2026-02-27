@@ -255,7 +255,7 @@ The idea for `broad-infinite-list` is pretty straightforward: an infinite scroll
 #### 2. What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?
 
 Those three libraries (`react-window`, `TanStack/virtual`, and `react-virtualized`) are similar, and their demos require a fixed height for each item.
-`broad-infinite-list` is a bidirectional infinite scroll list component that only renders a fixed number of items. It's not complicated.
+`broad-infinite-list` is a bidirectional infinite scroll list component that only renders a fixed number of items. It's not complicated. Naturally support dynamic height items.
 
 #### 3. Why should I use `broad-infinite-list` instead of others?
 
