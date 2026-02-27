@@ -55,8 +55,7 @@ const triggerLoad = (direction: 'up' | 'down', count = 6) => {
       return generateMessage(i+ALL_MESSAGES.length);
     }
   );
-  ALL_MESSAGES = [...newMessages, ...ALL_MESSAGES];
-  console.log(newMessages);
+  ALL_MESSAGES = direction === 'up' ? [...newMessages, ...ALL_MESSAGES]: [...ALL_MESSAGES, ...newMessages];
   listRef.value?.handleLoad(direction, () => {
     return newMessages;
   })
@@ -170,10 +169,10 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <button @click='triggerLoad("up")' class='text-xs px-2 py-1 bg-amber-400 rounded-lg'>
+        <button @click='triggerLoad("up")' class='hidden md:inline-block text-xs px-2 py-1 bg-amber-400 rounded-lg'>
           Manual Trigger
         </button>
-        <span class="text-xs text-green-500 font-bold tracking-widest flex items-center gap-1">
+        <span @click='triggerLoad("down")' class="text-xs text-green-500 font-bold tracking-widest flex items-center gap-1">
           <span class="size-1.5 bg-green-500 rounded-full animate-pulse" />
           ONLINE
         </span>
