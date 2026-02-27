@@ -1,8 +1,18 @@
 # CHANGELOG
 
+## v1.4.0
+
+**NO Breaking Change**
+
+- Feat: Add `handleLoad` to **ref** for manual loading of items (previously only supported user scroll trigger)
+- Feat: `itemKey` / `scrollToKey` now support `number` | `string`; previously only `string` was supported, which was not convenient
+- Feat: Add `upOffset` for up-direction scroll restoration when the position is incorrect sometimes
+- Examples: Improve example styles
+- README: Add FAQ section
+
 ## v1.3.1
 
-- Fix(all): List gets stuck when onLoadMore returns [] with sentinel still visible. Ref: [issues#7](https://github.com/suhaotian/broad-infinite-list/issues/7)  
+- Fix(all): List gets stuck when onLoadMore returns [] with sentinel still visible. Ref: [issues#7](https://github.com/suhaotian/broad-infinite-list/issues/7)
 - Example(react): Add `Infinite-List-to-Detail` Demo and close [issue#6](https://github.com/suhaotian/broad-infinite-list/issues/6). Visit [demo](https://suhaotian.github.io/broad-infinite-list/?demo=news)
 - Others: fix typos
 

@@ -77,7 +77,7 @@ import {
 } from "vue";
 
 
-export interface BidirectionalListRef {
+export interface BidirectionalListRef<T = any> {
   scrollViewRef: Ref<HTMLElement | null>;
   scrollToTop: (behavior?: ScrollBehavior) => void;
   scrollToBottom: (behavior?: ScrollBehavior) => void;
@@ -87,6 +87,11 @@ export interface BidirectionalListRef {
   getTopDistance: () => number;
   /** get Current distance to bottom */
   getBottomDistance: () => number;
+  /** Manual handle load */
+  handleLoad: (
+    direction: "up" | "down",
+    loadMore: () => T[] | Promise<T[]>
+  ) => void;
 }
 
 /**
@@ -162,6 +167,7 @@ type LoadDirection = "up" | "down";
 interface ScrollAnchor {
   key: string | number;
   offset: number;
+  scrollTop?: number;
 }
 
 /**
@@ -208,6 +214,8 @@ const props = withDefaults(
     hasNext: boolean;
     /** If true, disable loading in both directions */
     disable?: boolean;
+    /** Sticky header offset */
+    upOffset?: number;
     /** Called when a programmatic scroll adjustment begins */
     onScrollStart?: () => void;
     /** Called when a programmatic scroll adjustment ends */
@@ -335,19 +343,6 @@ const getBottomDistance = () => {
   );
 };
 
-/**
- * Expose public API to parent components via template ref.
- * This allows imperative control of scrolling from outside the component.
- */
-defineExpose<BidirectionalListRef>({
-  scrollViewRef: props.useWindow ? { value: rootEl } as typeof scrollViewRef : scrollViewRef,
-  scrollTo,
-  scrollToKey,
-  scrollToTop,
-  scrollToBottom,
-  getTopDistance,
-  getBottomDistance,
-});
 
 /** Get current scroll position (works for both window and container scroll) */
 const getScrollTop = (): number => {
@@ -424,7 +419,7 @@ const applyScrollRestore = (spinnerHeight = 0): void => {
 
     const delta = computeAnchorDelta(pending.anchor);
     if (delta !== 0) {
-      setScrollTop(getScrollTop() + delta - spinnerHeight);
+      setScrollTop(getScrollTop() + delta - spinnerHeight + (pending.anchor?.scrollTop ?? 0));
     }
 
     isAdjustingRef.value = false;
@@ -449,11 +444,22 @@ const applyScrollRestore = (spinnerHeight = 0): void => {
  * 
  * @param direction - "up" to load older items, "down" to load newer items
  */
-const handleLoad = async (direction: LoadDirection): Promise<void> => {
+const handleLoad = async (direction: LoadDirection, loadMore?: () => T[] | Promise<T[]>): Promise<void> => {
+  const _setIsUpLoading = (loading: boolean) => {
+    if (loadMore) return;
+    isUpLoading.value = loading;
+  };
+  const _setIsDownLoading = (loading: boolean) => {
+    if (loadMore) return;
+    isDownLoading.value = loading;
+  };
   // Early exits: disabled, no more items, or already loading this direction
   if (props.disable) return;
-  if (direction === "up" && !props.hasPrevious) return;
-  if (direction === "down" && !props.hasNext) return;
+  const isUp = direction === "up";
+  if (!loadMore) {
+    if (isUp && !props.hasPrevious) return;
+    if (direction === "down" && !props.hasNext) return;
+  }
   if (loadingLockRef[direction]) return;
 
   const currentItems = itemsRef.value as T[];
@@ -461,18 +467,20 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
 
   // Acquire locks and set loading state
   loadingLockRef[direction] = true;
+  if (loadMore) {
+    loadingLockRef[isUp ? "down" : "up"] = true;
+  }
   isAdjustingRef.value = true;
   let released = false;
 
-  const isUp = direction === "up";
   let upSpinnerHeight = 0;
 
   if (isUp) {
     // Show spinner
-    isUpLoading.value = true;
+    _setIsUpLoading(true);
     
     // Wait for spinner to render AND layout to complete, then measure spinner height.
-    await nextTickLayout(() => {
+    const onNextTick = ()=>{
       const firstKey = itemsRef.value.length > 0 
         ? props.itemKey(itemsRef.value[0] as T) 
         : null;
@@ -485,12 +493,17 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
         // After new items load, the first item should be at this distance from the top
         pendingRestoreRef.value = {
           type: "prepend",
-          anchor: { key: firstKey, offset: upSpinnerHeight },
+          anchor: { 
+            key: firstKey, 
+            offset: upSpinnerHeight,
+            scrollTop: (loadMore ? getScrollTop() : 0) - (props.upOffset || 0),
+          },
         };
       }
-    });
+    }
+    await (loadMore ? onNextTick() : nextTickLayout(onNextTick));
   } else {
-    isDownLoading.value = true;
+    _setIsDownLoading(true);
   }
 
   try {
@@ -498,14 +511,17 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
       ? currentItems[0] as T
       : currentItems[currentItems.length - 1] as T;
       
-    const newItems: T[] = await props.onLoadMore(direction, refItem);
+    const newItems: T[] = await (loadMore ? new Promise((r) => setTimeout(r, 50)).then(() => loadMore()): props.onLoadMore(direction, refItem));
 
     if (newItems.length === 0) {
-      if (isUp) isUpLoading.value = false;
-      else isDownLoading.value = false;
+      if (isUp) _setIsUpLoading(false);
+      else _setIsDownLoading(false);
       isAdjustingRef.value = false;
       released = true;
       loadingLockRef[direction] = false;
+      if (loadMore) {
+        loadingLockRef[isUp ? "down" : "up"] = false;
+      }
       return;
     }
 
@@ -520,11 +536,9 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
 
       // Commit changes
       props.onItemsChange?.(nextItems);
-      isUpLoading.value = false;
-      
+      _setIsUpLoading(false);
       // Restore scroll after layout completes
       applyScrollRestore(props.useWindow ? upSpinnerHeight : 0);
-      
     } else {
       // Append new items
       let nextItems = [...currentItems, ...newItems] as T[];
@@ -550,7 +564,7 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
 
       // Commit changes
       props.onItemsChange?.(nextItems);
-      isDownLoading.value = false;
+      _setIsDownLoading(false);
 
       if (didTrim) {
         // Restore scroll after layout completes
@@ -570,10 +584,29 @@ const handleLoad = async (direction: LoadDirection): Promise<void> => {
     if (!released) {
       setTimeout(() => {
         loadingLockRef[direction] = false;
+        if (loadMore) {
+          loadingLockRef[isUp ? "down" : "up"] = false;
+        }
       }, LOAD_COOLDOWN_MS);
     }
   }
 };
+
+
+/**
+ * Expose public API to parent components via template ref.
+ * This allows imperative control of scrolling from outside the component.
+ */
+defineExpose<BidirectionalListRef<T>>({
+  scrollViewRef: props.useWindow ? { value: rootEl } as typeof scrollViewRef : scrollViewRef,
+  scrollTo,
+  scrollToKey,
+  scrollToTop,
+  scrollToBottom,
+  getTopDistance,
+  getBottomDistance,
+  handleLoad,
+});
 
 /**
  * Sets up the IntersectionObserver to detect when to trigger loading.

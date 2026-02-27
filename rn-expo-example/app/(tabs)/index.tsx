@@ -1,6 +1,7 @@
 import BidirectionalList, {
   type BidirectionalListProps,
   type BidirectionalListRef,
+// } from "./react-native";
 } from "broad-infinite-list/react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -59,8 +60,8 @@ export default function ChatDemoScreen() {
 
     nextTick(() => {
       listRef.current?.scrollToBottom?.(false);
-      setDisable(false);
     });
+    setDisable(false);
   }, []);
 
   useEffect(() => {
@@ -71,16 +72,11 @@ export default function ChatDemoScreen() {
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
       // setKeyboardVisible(true);
-      console.log(
-        listRef.current?.getBottomDistance(),
-        listRef.current?.getTopDistance()
-      );
+      const bottomDistance = listRef.current?.getBottomDistance() || 0;
       setTimeout(() => {
-        console.log(
-          listRef.current?.getBottomDistance(),
-          listRef.current?.getTopDistance()
-        );
-        listRef.current?.scrollToBottom(true);
+        if (bottomDistance < 20) {
+          listRef.current?.scrollToBottom(true);
+        }
       }, 50);
     });
 
@@ -119,7 +115,7 @@ export default function ChatDemoScreen() {
     messages[messages.length - 1]?.id !==
       ALL_MESSAGES[ALL_MESSAGES.length - 1]?.id;
 
-  const listRef = useRef<BidirectionalListRef>(null);
+  const listRef = useRef<BidirectionalListRef<ChatMessage>>(null);
   const showJump =
     messages[messages.length - 1]?.id !==
     ALL_MESSAGES[ALL_MESSAGES.length - 1]?.id;
@@ -132,18 +128,10 @@ export default function ChatDemoScreen() {
 
   const onScrollStart = () => {
     console.log("Start scroll");
-    console.log(
-      listRef.current?.getBottomDistance(),
-      listRef.current?.getTopDistance()
-    );
   };
 
   const onScrollEnd = () => {
     console.log("Finish scroll");
-    console.log(
-      listRef.current?.getBottomDistance(),
-      listRef.current?.getTopDistance()
-    );
   };
 
   const sendMessage = () => {
@@ -166,6 +154,22 @@ export default function ChatDemoScreen() {
   };
   const insets = useSafeAreaInsets();
 
+  const triggerLoadMore = () => {
+    const direction: "up" | "down" = "up",
+      count = 6;
+    const newMessages = Array.from({ length: count }, (_, i) => {
+      return generateMessage(i + ALL_MESSAGES.length);
+    });
+    ALL_MESSAGES =
+      direction === "up"
+        ? [...newMessages, ...ALL_MESSAGES]
+        : [...ALL_MESSAGES, ...newMessages];
+    console.log(newMessages);
+    listRef.current?.handleLoad(direction, () => {
+      return newMessages;
+    });
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -186,10 +190,12 @@ export default function ChatDemoScreen() {
             </View>
           </View>
           <View style={styles.headerRight}>
-            <View style={styles.onlineIndicator}>
-              <View style={styles.onlineDot} />
-              <Text style={styles.onlineText}>ONLINE</Text>
-            </View>
+            <TouchableOpacity onPress={triggerLoadMore}>
+              <View style={styles.onlineIndicator}>
+                <View style={styles.onlineDot} />
+                <Text style={styles.onlineText}>ONLINE</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 

@@ -12,6 +12,7 @@ import {
   useImperativeHandle,
   type ForwardedRef,
   useRef,
+  useEffect,
 } from "react";
 import { Node } from "./node";
 
@@ -125,15 +126,16 @@ function ListDemo({
   useWindow,
   ref,
   overflowAnchor,
+  stickyHeaderHeight,
 }: {
   useWindow: boolean;
   ref: ForwardedRef<{ triggerUpBug(): void }>;
   overflowAnchor: "auto" | "none";
+  stickyHeaderHeight: number;
 }): ReactNode {
   const listRef = useRef<BidirectionalListRef<DemoItem>>(null);
   const [items, setItems] = useState<DemoItem[]>(() => getInitialPage(30));
   const { hasPrevious, hasNext } = computeBounds(items);
-
   const triggerUpBug = useCallback(() => {
     const newItems = Array.from({ length: 5 }, (_: unknown, i: number) =>
       generateItem(nextId())
@@ -173,6 +175,7 @@ function ListDemo({
       hasPrevious={hasPrevious}
       hasNext={hasNext}
       emptyState="No items"
+      upOffset={useWindow ? stickyHeaderHeight : undefined}
       itemStyle={{ overflowAnchor }}
     />
   );
@@ -247,6 +250,13 @@ export default function E2ETests(): ReactNode {
   const listDemoRef = useRef<{ triggerUpBug(): void }>(null);
   const [overflowAnchor, setOverflowAnchor] = useState<"auto" | "none">("none");
 
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
+  useEffect(() => {
+    const height = headerRef.current!.getBoundingClientRect()?.height;
+    if (height) setStickyHeaderHeight(height);
+  }, []);
+
   return (
     <>
       <style>{`
@@ -269,6 +279,7 @@ export default function E2ETests(): ReactNode {
         }}>
         {/* Header */}
         <div
+          ref={headerRef}
           style={{
             background: "#1e293b",
             borderBottom: "1px solid #334155",
@@ -276,7 +287,7 @@ export default function E2ETests(): ReactNode {
             flexShrink: 0,
             position: "sticky",
             top: 0,
-            zIndex: 10,
+            zIndex: 2,
           }}>
           <div
             style={{
@@ -285,7 +296,7 @@ export default function E2ETests(): ReactNode {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 16,
+              // gap: 16,
             }}>
             <div>
               <div
@@ -381,6 +392,7 @@ export default function E2ETests(): ReactNode {
               key={isWindowMode ? 1 : 2}
               ref={listDemoRef}
               overflowAnchor={overflowAnchor}
+              stickyHeaderHeight={stickyHeaderHeight}
             />
           </div>
         </div>

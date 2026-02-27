@@ -38,16 +38,29 @@ const disable = ref(true);
 const useWindowRef = ref(false);
 const unreadCount = ref(0);
 const inputValue = ref('');
-const listRef = ref<BidirectionalListRef>();
+const listRef = ref<BidirectionalListRef<ChatMessage>>();
 
-  const toggleUseWindow = () => {
-    disable.value = true;
-    useWindowRef.value = !useWindowRef.value;
-    nextTick().then(() => {
-      listRef.value?.scrollToBottom('instant');
-      disable.value = false;
-    })
-  }
+const toggleUseWindow = () => {
+  disable.value = true;
+  useWindowRef.value = !useWindowRef.value;
+  nextTick().then(() => {
+    listRef.value?.scrollToBottom('instant');
+    disable.value = false;
+  })
+}
+
+const triggerLoad = (direction: 'up' | 'down', count = 6) => {
+  const newMessages = Array.from({ length: count }, (_, i) =>
+    {
+      return generateMessage(i+ALL_MESSAGES.length);
+    }
+  );
+  ALL_MESSAGES = [...newMessages, ...ALL_MESSAGES];
+  console.log(newMessages);
+  listRef.value?.handleLoad(direction, () => {
+    return newMessages;
+  })
+}
 
 
 onMounted(() => {
@@ -57,11 +70,9 @@ onMounted(() => {
   const initialMessages = ALL_MESSAGES.slice(-VIEW_COUNT);
   messages.value = initialMessages;
   if (initialMessages.length > 0) {
-    console.log(listRef.value?.getTopDistance(),listRef.value?.getBottomDistance())
     nextTick(() => {
       listRef.value?.scrollToBottom('instant');
       disable.value = false;
-      console.log(listRef.value?.getTopDistance(),listRef.value?.getBottomDistance())
     })
   }
 });
@@ -159,6 +170,9 @@ const handleItemsChange = (newItems: ChatMessage[]): void => {
         </div>
       </div>
       <div class="flex items-center space-x-2">
+        <button @click='triggerLoad("up")' class='text-xs px-2 py-1 bg-amber-400 rounded-lg'>
+          Manual Trigger
+        </button>
         <span class="text-xs text-green-500 font-bold tracking-widest flex items-center gap-1">
           <span class="size-1.5 bg-green-500 rounded-full animate-pulse" />
           ONLINE

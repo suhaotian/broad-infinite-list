@@ -15,6 +15,7 @@ import {
   Copy,
   RotateCw,
   ArrowDown,
+  Bug,
 } from "lucide-react";
 import { useNextTickLayout as useNextTick } from "use-next-tick";
 import BidirectionalList, {
@@ -34,7 +35,7 @@ interface Message {
   timestamp: number;
 }
 
-const generateRandomMessages = (count: number): Message[] => {
+const generateRandomMessages = (count: number, baseId = 0): Message[] => {
   const snippets = [
     { type: "text", content: "The quick brown fox jumps over the lazy dog." },
     {
@@ -76,7 +77,7 @@ const generateRandomMessages = (count: number): Message[] => {
     const isUser = Math.random() > 0.5;
     if (isUser) {
       msgs.push({
-        id: `msg-${i}`,
+        id: `msg-${i + baseId}`,
         sender: "user",
         text:
           snippets[0]?.content +
@@ -98,7 +99,7 @@ const generateRandomMessages = (count: number): Message[] => {
       }
 
       msgs.push({
-        id: `msg-${i}`,
+        id: `msg-${i + baseId}`,
         sender: "ai",
         text,
         timestamp: Date.now() - (count - i) * 60000,
@@ -171,6 +172,8 @@ const useMessageData = (totalMessages: number = TOTAL_COUNT) => {
 
   return {
     disable,
+    ALL_MESSAGES,
+    setAllMessages,
     messages,
     handleLoadMore,
     setMessages,
@@ -275,6 +278,8 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
   const {
     disable,
     messages,
+    ALL_MESSAGES,
+    setAllMessages,
     setMessages,
     handleLoadMore,
     hasPrevious,
@@ -283,6 +288,20 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
     showJump,
     handleJump,
   } = useMessageData();
+
+  const handleLoad = () => {
+    listRef.current?.handleLoad("down", () => {
+      const items = generateRandomMessages(6, ALL_MESSAGES.length + 1);
+      setAllMessages((state) => {
+        return [...state, ...items];
+      });
+      return items;
+    });
+    // const items = generateRandomMessages(6, ALL_MESSAGES.length + 1);
+    // setAllMessages((state) => {
+    //   return [...state, ...items];
+    // });
+  };
   const spinner = (
     <div
       className={`py-4 text-center flex justify-center items-center gap-2 ${
@@ -304,7 +323,9 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
             ? "bg-[#343541] border-white/10 text-gray-100"
             : "bg-white border-black/5 text-gray-800"
         }`}>
-        <a href="/broad-infinite-list" className="flex items-center gap-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md px-2 py-2 transition-colors">
+        <a
+          href="/broad-infinite-list"
+          className="flex items-center gap-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md px-2 py-2 transition-colors">
           <span className="font-semibold text-base">ChatGPT Demo</span>
         </a>
         <div>{headerItem}</div>
@@ -407,9 +428,16 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
               style={{ minHeight: "24px" }}
             />
             <div className="flex justify-between items-center">
-              <button className="p-2 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-black/20">
-                <Paperclip size={18} />
-              </button>
+              <div>
+                <button className="p-2 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-black/20">
+                  <Paperclip size={18} />
+                </button>
+                <button
+                  onClick={handleLoad}
+                  className="p-2 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-black/20">
+                  <Bug size={18} />
+                </button>
+              </div>
               <button
                 className={`p-1.5 rounded-lg transition-colors ${
                   isDark
@@ -469,7 +497,9 @@ const ClaudeInterface: React.FC<ChatComponentProps> = ({
         className={`flex-none sticky top-0 z-50 flex items-center justify-between px-2 py-3 shadow md:px-6 md:py-4 transition-colors duration-200 ${
           isDark ? "bg-[#1d1c1a] text-[#d1d1cf]" : "bg-[#f5f2e8] text-[#3e3e3c]"
         }`}>
-        <a href="/broad-infinite-list" className="flex items-center gap-3 select-none">
+        <a
+          href="/broad-infinite-list"
+          className="flex items-center gap-3 select-none">
           <div
             className={`p-1.5 rounded-lg ${
               isDark

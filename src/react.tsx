@@ -78,6 +78,8 @@ export interface BidirectionalListProps<T> {
   hasNext: boolean;
   /** If true, disable loading in both directions */
   disable?: boolean;
+  /** Sticky header offset */
+  upOffset?: number;
   /** Called when a programmatic scroll adjustment begins */
   onScrollStart?: () => void;
   /** Called when a programmatic scroll adjustment ends */
@@ -98,10 +100,13 @@ function snapshotAnchor(
   key: string | number,
   findElementByKey: (key: string | number) => Element | null,
   getViewportTop: () => number
-): { key: string | number; offset: number } | null {
+) {
   const el = findElementByKey(key);
   if (!el) return null;
-  return { key, offset: el.getBoundingClientRect().top - getViewportTop() };
+  return {
+    key,
+    offset: el.getBoundingClientRect().top - getViewportTop(),
+  };
 }
 
 /**
@@ -149,6 +154,7 @@ export default function BidirectionalList<T>({
   onScrollEnd,
   headerSlot = ({ children }) => children,
   footerSlot = ({ children }) => children,
+  upOffset,
 }: BidirectionalListProps<T> & {
   ref?: ForwardedRef<BidirectionalListRef<T>>;
 }) {
@@ -173,7 +179,11 @@ export default function BidirectionalList<T>({
   // Pending scroll-restoration info, set before React commits, consumed in nextTick
   const pendingRestoreRef = useRef<{
     type: "prepend" | "down-trim";
-    anchor: { key: string | number; offset: number; scrollTop?: number } | null;
+    anchor: {
+      key: string | number;
+      offset: number;
+      scrollTop?: number;
+    } | null;
   } | null>(null);
 
   const [isUpLoading, setIsUpLoading] = useState(false);
@@ -299,7 +309,9 @@ export default function BidirectionalList<T>({
       findElementByKey,
       getViewportTop
     );
-    if (delta !== 0) setScrollTop(getScrollTop() + delta + (pending.anchor?.scrollTop ?? 0));
+    if (delta !== 0) {
+      setScrollTop(getScrollTop() + delta + (pending.anchor?.scrollTop ?? 0));
+    }
 
     isAdjustingRef.current = false;
   }, [findElementByKey, getViewportTop, getScrollTop, setScrollTop]);
@@ -333,7 +345,7 @@ export default function BidirectionalList<T>({
 
       loadingLockRef.current[direction] = true;
       if (loadMore) {
-        loadingLockRef.current[direction === "up" ? "down" : "up"] = true;
+        loadingLockRef.current[isUp ? "down" : "up"] = true;
       }
       isAdjustingRef.current = true;
       let released = false;
@@ -355,7 +367,11 @@ export default function BidirectionalList<T>({
             // because the anchor sat directly below the spinner before new items appeared.
             pendingRestoreRef.current = {
               type: "prepend",
-              anchor: { key: firstKey, offset: spinnerHeight, scrollTop: loadMore ? getScrollTop() : 0 },
+              anchor: {
+                key: firstKey,
+                offset: spinnerHeight,
+                scrollTop: (loadMore ? getScrollTop() : 0) - (upOffset || 0),
+              },
             };
           }
         };
@@ -370,7 +386,7 @@ export default function BidirectionalList<T>({
           : (currentItems[currentItems.length - 1] as T);
 
         const newItems = await (loadMore
-          ? new Promise((r) => setTimeout(r, 200)).then(() => loadMore())
+          ? new Promise((r) => setTimeout(r, 50)).then(() => loadMore())
           : onLoadMore(direction, refItem));
 
         if (newItems.length === 0) {
@@ -380,7 +396,7 @@ export default function BidirectionalList<T>({
           released = true;
           loadingLockRef.current[direction] = false;
           if (loadMore) {
-            loadingLockRef.current[direction === "up" ? "down" : "up"] = false;
+            loadingLockRef.current[isUp ? "down" : "up"] = false;
           }
           pendingRestoreRef.current = null;
           return;
@@ -436,7 +452,7 @@ export default function BidirectionalList<T>({
           setTimeout(() => {
             loadingLockRef.current[direction] = false;
             if (loadMore) {
-              loadingLockRef.current[direction === "up" ? "down" : "up"] =
+              loadingLockRef.current[isUp ? "down" : "up"] =
                 false;
             }
           }, LOAD_COOLDOWN_MS);
@@ -455,6 +471,7 @@ export default function BidirectionalList<T>({
       getViewportTop,
       nextTick,
       applyScrollRestore,
+      upOffset,
     ]
   );
 

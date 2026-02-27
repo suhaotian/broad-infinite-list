@@ -11,6 +11,8 @@
 
 ## Demos
 
+### React & Vue Demos
+
 - Chat Messages List [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
 - News feed list & detail(Scroll Restoration when navigation back) [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
 - Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
@@ -18,14 +20,38 @@
 - ChatGPT [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chatgpt)
 - Claude theme [Demo](https://suhaotian.github.io/broad-infinite-list?demo=claude)
 
-### Expo Demo Preview(ReactNative)
+**Table of Contents**
+
+- [Broad Infinite List ·      ](#broad-infinite-list-------)
+  - [Features](#features)
+  - [Demos](#demos)
+    - [React \& Vue Demos](#react--vue-demos)
+    - [Expo Demo Preview(React Native)](#expo-demo-previewreact-native)
+  - [**How It Works**](#how-it-works)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+  - [API](#api)
+    - [BidirectionalList Props](#bidirectionallist-props)
+    - [BidirectionalListRef\<T=any\>](#bidirectionallistreftany)
+  - [Development](#development)
+  - [FAQ](#faq)
+    - [What's the biggest advantage of this library?](#whats-the-biggest-advantage-of-this-library)
+    - [What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?](#whats-the-difference-between-broad-infinite-list-and-react-window--tanstackvirtual--react-virtualized)
+    - [Why should I use `broad-infinite-list` instead of others?](#why-should-i-use-broad-infinite-list-instead-of-others)
+    - [What frameworks does `broad-infinite-list` support currently?](#what-frameworks-does-broad-infinite-list-support-currently)
+    - [What's the disadvantage of `broad-infinite-list`?](#whats-the-disadvantage-of-broad-infinite-list)
+  - [Reporting Issues](#reporting-issues)
+  - [Support](#support)
+  - [Projects You May Also Be Interested In](#projects-you-may-also-be-interested-in)
+
+### Expo Demo Preview(React Native)
 
 > [!NOTE]
 > Scan it, then open it in Expo Go.
 
 ![react native demo](https://qr.expo.dev/eas-update?projectId=6ff17c83-f729-41d7-832c-93b12ba3435e&groupId=715a0933-a3de-4942-8079-b7940eeedba2)
 
-**How It Works**
+## **How It Works**
 
 Define a fixed window of visible items (e.g., 30 entries from a 100,000-record dataset). Load items entering the viewport as the user scrolls, and remove items leaving the viewport. This keeps rendered items constant and maintains smooth performance with large datasets.
 
@@ -167,12 +193,14 @@ const Spinner = () => (
 export default MyList;
 ```
 
+## API
+
 ### BidirectionalList Props
 
 | Property        | Type                                                                                     | Required | Default     | Description                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- |
+| --------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `items`         | `T[]`                                                                                    | Yes      | -           | Current array of items to display                                                |
-| `itemKey`       | `(item: T) => string`                                                                    | Yes      | -           | Function to extract a unique key from each item                                  |
+| `itemKey`       | `(item: T) => string                                                                     | number`  | Yes         | -                                                                                | Function to extract a unique key from each item |
 | `renderItem`    | `(item: T) => React.ReactNode`                                                           | Yes      | -           | Function to render each item                                                     |
 | `onLoadMore`    | `(direction: "up" \| "down", refItem: T) => Promise<T[]>`                                | Yes      | -           | Called when more items should be loaded; returns the new items to prepend/append |
 | `hasPrevious`   | `boolean`                                                                                | Yes      | -           | Whether there are more items available above the current view                    |
@@ -195,18 +223,20 @@ export default MyList;
 | `onScrollEnd`   | `() => void`                                                                             | No       | `undefined` | Called when a programmatic scroll adjustment ends                                |
 | `headerSlot`    | `({children}: {children: ReactNode}) => children`                                        | No       | `undefined` | for table element                                                                |
 | `footerSlot`    | `({children}: {children: ReactNode}) => children`                                        | No       | `undefined` | for table element                                                                |
+| `upOffset`      | `number`                                                                                 | No       | `undefined` | Sticky header offset                                                             |
 
-### BidirectionalListRef
+### BidirectionalListRef<T=any>
 
-| Property            | Type                                               | Required | Default | Description                                   |
-| ------------------- | -------------------------------------------------- | -------- | ------- | --------------------------------------------- |
-| `scrollViewRef`     | `RefObject<HTMLElement \| null>`                   | Yes      | -       | Reference to the scrollable container element |
-| `scrollToTop`       | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the top of the list                 |
-| `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`              | Yes      | -       | Scroll to the bottom of the list              |
-| `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to a specific pixel offset from top    |
-| `scrollToKey`       | `(key: string, behavior?: ScrollBehavior) => void` | Yes      | -       | Scroll to an item by its key                  |
-| `getTopDistance`    | `() => number`                                     | Yes      | -       | Get current distance to top                   |
-| `getBottomDistance` | `() => number`                                     | Yes      | -       | Get Current distance to bottom                |
+| Property            | Type                                                                         | Required                                    | Default | Description                                                      |
+| ------------------- | ---------------------------------------------------------------------------- | ------------------------------------------- | ------- | ---------------------------------------------------------------- | ---------------------------- |
+| `scrollViewRef`     | `RefObject<HTMLElement \| null>`                                             | Yes                                         | -       | Reference to the scrollable container element                    |
+| `scrollToTop`       | `(behavior?: ScrollBehavior) => void`                                        | Yes                                         | -       | Scroll to the top of the list                                    |
+| `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`                                        | Yes                                         | -       | Scroll to the bottom of the list                                 |
+| `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void`                           | Yes                                         | -       | Scroll to a specific pixel offset from top                       |
+| `scrollToKey`       | `(key: string                                                                | number, behavior?: ScrollBehavior) => void` | Yes     | -                                                                | Scroll to an item by its key |
+| `getTopDistance`    | `() => number`                                                               | Yes                                         | -       | Get current distance to top                                      |
+| `getBottomDistance` | `() => number`                                                               | Yes                                         | -       | Get Current distance to bottom                                   |
+| `handleLoad`        | `(direction: 'up' \| 'down', getItems: () => T[]   \| Promise<T[]>) => void` | Yes                                         | -       | Manual Load Items (Previous, only support user scroll trigger load) |
 
 ## Development
 
@@ -215,6 +245,35 @@ This project use bun, but in `rn-expo-example/` use pnpm.
 ```sh
 bun install && bun run build
 ```
+
+## FAQ
+
+### What's the biggest advantage of this library?
+
+The idea for `broad-infinite-list` is pretty straightforward: an infinite scroll list + a fixed number of items rendered + avoiding layout shifts after items are trimmed. That’s why it’s only 2 KB gzipped. No magic, no complicated theory.
+
+### What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?
+
+Those three libraries (`react-window`, `TanStack/virtual`, and `react-virtualized`) are similar, and their demos require a fixed height for each item.
+`broad-infinite-list` is a bidirectional infinite scroll list component that only renders a fixed number of items. It's not complicated.
+
+### Why should I use `broad-infinite-list` instead of others?
+
+There are three main reasons why you should use `broad-infinite-list`:
+
+- 1. **High performance:** Bidirectional infinite scroll list.
+- 2. **Flexible:** Supports the window or a custom div as the container.
+- 3. **Tiny:** Only 2KB gzipped.
+
+> `broad-infinite-list` is quite new, but because of its simple implementation, means it has fewer bugs.
+
+### What frameworks does `broad-infinite-list` support currently?
+
+Currently, `broad-infinite-list` supports React, React Native, and Vue.
+
+### What's the disadvantage of `broad-infinite-list`?
+
+If you find any issues or disadvantages, please create an issue. I will review it and fix it if possible. Thank you.
 
 ## Reporting Issues
 
