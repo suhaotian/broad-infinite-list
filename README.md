@@ -35,11 +35,11 @@
     - [BidirectionalListRef](#bidirectionallistref)
   - [Development](#development)
   - [FAQ](#faq)
-    - [What's the biggest advantage of this library?](#whats-the-biggest-advantage-of-this-library)
-    - [What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?](#whats-the-difference-between-broad-infinite-list-and-react-window--tanstackvirtual--react-virtualized)
-    - [Why should I use `broad-infinite-list` instead of others?](#why-should-i-use-broad-infinite-list-instead-of-others)
-    - [What frameworks does `broad-infinite-list` support currently?](#what-frameworks-does-broad-infinite-list-support-currently)
-    - [What's the disadvantage of `broad-infinite-list`?](#whats-the-disadvantage-of-broad-infinite-list)
+      - [1. What's the biggest advantage of this library?](#1-whats-the-biggest-advantage-of-this-library)
+      - [2. What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?](#2-whats-the-difference-between-broad-infinite-list-and-react-window--tanstackvirtual--react-virtualized)
+      - [3. Why should I use `broad-infinite-list` instead of others?](#3-why-should-i-use-broad-infinite-list-instead-of-others)
+      - [4. What frameworks does `broad-infinite-list` support currently?](#4-what-frameworks-does-broad-infinite-list-support-currently)
+      - [5. What's the disadvantage of `broad-infinite-list`?](#5-whats-the-disadvantage-of-broad-infinite-list)
   - [Reporting Issues](#reporting-issues)
   - [Support](#support)
   - [Projects You May Also Be Interested In](#projects-you-may-also-be-interested-in)
@@ -248,16 +248,16 @@ bun install && bun run build
 
 ## FAQ
 
-### What's the biggest advantage of this library?
+#### 1. What's the biggest advantage of this library?
 
-The idea for `broad-infinite-list` is pretty straightforward: an infinite scroll list + a fixed number of items rendered + avoiding layout shifts after items are trimmed. That’s why it’s only 2 KB gzipped. No magic, no complicated theory.
+The idea for `broad-infinite-list` is pretty straightforward: an infinite scroll list ➕ a fixed number of items rendered ➕ avoiding layout shifts after items are trimmed. That’s why it’s only 2 KB gzipped. No magic, no complicated theory.
 
-### What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?
+#### 2. What's the difference between `broad-infinite-list` and `react-window` / `TanStack/virtual` / `react-virtualized`?
 
 Those three libraries (`react-window`, `TanStack/virtual`, and `react-virtualized`) are similar, and their demos require a fixed height for each item.
 `broad-infinite-list` is a bidirectional infinite scroll list component that only renders a fixed number of items. It's not complicated.
 
-### Why should I use `broad-infinite-list` instead of others?
+#### 3. Why should I use `broad-infinite-list` instead of others?
 
 There are three main reasons why you should use `broad-infinite-list`:
 
@@ -267,11 +267,11 @@ There are three main reasons why you should use `broad-infinite-list`:
 
 > `broad-infinite-list` is quite new, but because of its simple implementation, means it has fewer bugs.
 
-### What frameworks does `broad-infinite-list` support currently?
+#### 4. What frameworks does `broad-infinite-list` support currently?
 
 Currently, `broad-infinite-list` supports React, React Native, and Vue.
 
-### What's the disadvantage of `broad-infinite-list`?
+#### 5. What's the disadvantage of `broad-infinite-list`?
 
 If you find any issues or disadvantages, please create an issue. I will review it and fix it if possible. Thank you.
 
