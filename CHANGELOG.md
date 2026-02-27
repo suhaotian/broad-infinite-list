@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## v1.4.1
+
+- Fix README API section wrong format
+
 ## v1.4.0
 
 **NO Breaking Change**

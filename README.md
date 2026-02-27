@@ -32,7 +32,7 @@
   - [Quick Start](#quick-start)
   - [API](#api)
     - [BidirectionalList Props](#bidirectionallist-props)
-    - [BidirectionalListRef\<T=any\>](#bidirectionallistreftany)
+    - [BidirectionalListRef](#bidirectionallistref)
   - [Development](#development)
   - [FAQ](#faq)
     - [What's the biggest advantage of this library?](#whats-the-biggest-advantage-of-this-library)
@@ -198,9 +198,9 @@ export default MyList;
 ### BidirectionalList Props
 
 | Property        | Type                                                                                     | Required | Default     | Description                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- | ----------------------------------------------- |
+| --------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- |
 | `items`         | `T[]`                                                                                    | Yes      | -           | Current array of items to display                                                |
-| `itemKey`       | `(item: T) => string                                                                     | number`  | Yes         | -                                                                                | Function to extract a unique key from each item |
+| `itemKey`       | `(item: T) => string \| number`                                                                    | Yes      | -           | Function to extract a unique key from each item                                  |
 | `renderItem`    | `(item: T) => React.ReactNode`                                                           | Yes      | -           | Function to render each item                                                     |
 | `onLoadMore`    | `(direction: "up" \| "down", refItem: T) => Promise<T[]>`                                | Yes      | -           | Called when more items should be loaded; returns the new items to prepend/append |
 | `hasPrevious`   | `boolean`                                                                                | Yes      | -           | Whether there are more items available above the current view                    |
@@ -225,18 +225,18 @@ export default MyList;
 | `footerSlot`    | `({children}: {children: ReactNode}) => children`                                        | No       | `undefined` | for table element                                                                |
 | `upOffset`      | `number`                                                                                 | No       | `undefined` | Sticky header offset                                                             |
 
-### BidirectionalListRef<T=any>
+### BidirectionalListRef
 
-| Property            | Type                                                                         | Required                                    | Default | Description                                                      |
-| ------------------- | ---------------------------------------------------------------------------- | ------------------------------------------- | ------- | ---------------------------------------------------------------- | ---------------------------- |
-| `scrollViewRef`     | `RefObject<HTMLElement \| null>`                                             | Yes                                         | -       | Reference to the scrollable container element                    |
-| `scrollToTop`       | `(behavior?: ScrollBehavior) => void`                                        | Yes                                         | -       | Scroll to the top of the list                                    |
-| `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`                                        | Yes                                         | -       | Scroll to the bottom of the list                                 |
-| `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void`                           | Yes                                         | -       | Scroll to a specific pixel offset from top                       |
-| `scrollToKey`       | `(key: string                                                                | number, behavior?: ScrollBehavior) => void` | Yes     | -                                                                | Scroll to an item by its key |
-| `getTopDistance`    | `() => number`                                                               | Yes                                         | -       | Get current distance to top                                      |
-| `getBottomDistance` | `() => number`                                                               | Yes                                         | -       | Get Current distance to bottom                                   |
-| `handleLoad`        | `(direction: 'up' \| 'down', getItems: () => T[]   \| Promise<T[]>) => void` | Yes                                         | -       | Manual Load Items (Previous, only support user scroll trigger load) |
+| Property            | Type                                                                         | Required | Default | Description                                                         |
+| ------------------- | ---------------------------------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------- |
+| `scrollViewRef`     | `RefObject<HTMLElement \| null>`                                             | Yes      | -       | Reference to the scrollable container element                       |
+| `scrollToTop`       | `(behavior?: ScrollBehavior) => void`                                        | Yes      | -       | Scroll to the top of the list                                       |
+| `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`                                        | Yes      | -       | Scroll to the bottom of the list                                    |
+| `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void`                           | Yes      | -       | Scroll to a specific pixel offset from top                          |
+| `scrollToKey`       | `(key: string \| number, behavior?: ScrollBehavior) => void`                           | Yes      | -       | Scroll to an item by its key                                        |
+| `getTopDistance`    | `() => number`                                                               | Yes      | -       | Get current distance to top                                         |
+| `getBottomDistance` | `() => number`                                                               | Yes      | -       | Get Current distance to bottom                                      |
+| `handleLoad`        | `(direction: 'up' \| 'down', getItems: () => T[]   \| Promise<T[]>) => void` | Yes      | -       | Manual Load Items (Previous, only support user scroll trigger load) |
 
 ## Development
 
