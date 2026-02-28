@@ -113,8 +113,9 @@ export default function Demos() {
               </div>
             </div>
             <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
-              A high-performance, <strong>bidirectional infinite loader</strong>{" "}
-              for large list rendering, support React, React Native and Vue.
+              A high-performance,{" "}
+              <strong>bidirectional infinite scroll list</strong> component for
+              large list rendering, support React, React Native and Vue.
               Smoothly stream logs, feed updates, or chat history in both
               directions without layout shifts.
             </p>
