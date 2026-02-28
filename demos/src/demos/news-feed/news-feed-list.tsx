@@ -33,6 +33,7 @@ let ALL_NEWS: NewsItem[] = [];
 
 let currentItems: NewsItem[] = [];
 let topDistance = 0;
+let lastVisitId = 0;
 
 export default function NewsFeedDemo() {
   const unmountRef = useRef(false);
@@ -67,8 +68,18 @@ export default function NewsFeedDemo() {
     }
     setDisable(false);
     nextTick(() => {
-      if (listRef.current?.scrollViewRef?.current) {
+      if (listRef.current?.scrollViewRef?.current && topDistance) {
         listRef.current.scrollViewRef.current.scrollTop = topDistance;
+        document
+          .querySelector(`[data-id="${lastVisitId}"]`)!
+          .classList!.add("bg-red-200!");
+        topDistance = 0;
+        setTimeout(() => {
+          document
+            .querySelector(`[data-id="${lastVisitId}"]`)!
+            .classList!.remove("bg-red-200!");
+          lastVisitId = 0;
+        }, 300);
       }
     });
     return () => {
@@ -142,6 +153,9 @@ export default function NewsFeedDemo() {
         renderItem={(item) => (
           <Link
             to={`/detail?id=${item.id}&title=${item.title}`}
+            onClick={() => {
+              lastVisitId = item.id;
+            }}
             className="relative block p-8 border-b border-gray-50 hover:bg-gray-50 transition-colors">
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">
               {item.category}
