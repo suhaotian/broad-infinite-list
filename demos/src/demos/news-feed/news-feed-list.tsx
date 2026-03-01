@@ -59,8 +59,10 @@ export default function NewsFeedDemo() {
   }, []);
 
   useEffect(() => {
-    ALL_NEWS = Array.from({ length: TOTAL_COUNT }, (_, i) => generateNews(i));
-    ALL_NEWS.reverse();
+    if (!ALL_NEWS.length) {
+      ALL_NEWS = Array.from({ length: TOTAL_COUNT }, (_, i) => generateNews(i));
+      ALL_NEWS.reverse();
+    }
     if (currentItems.length > 0 && topDistance) {
       setItems(currentItems);
     } else {
