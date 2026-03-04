@@ -12,6 +12,7 @@ export const whiteFields = [
   'files',
   'main',
   'types',
+  'type',
   'require',
   'import',
   'module',

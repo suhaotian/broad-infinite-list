@@ -47,7 +47,9 @@ function MyTableList() {
     direction,
     refItem
   ) => {
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) =>
+      setTimeout(r, direction === "down" ? 100 : Math.random() * 1e3)
+    );
     const idx = NEWS_BY_RECENCY.findIndex((n) => n.id === refItem.id);
     if (direction === "down") {
       return NEWS_BY_RECENCY.slice(idx + 1, idx + PAGE_SIZE + 1);

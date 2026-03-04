@@ -139,8 +139,9 @@ const useMessageData = (totalMessages: number = TOTAL_COUNT) => {
     direction,
     refItem
   ) => {
-    await new Promise((r) => setTimeout(r, Math.random() * 1000));
-
+    await new Promise((r) =>
+      setTimeout(r, direction === "down" ? 100 : Math.random() * 1e3)
+    );
     const idx = ALL_MESSAGES.findIndex((m) => m.id === refItem.id);
     if (idx === -1) return [];
 

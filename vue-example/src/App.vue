@@ -80,8 +80,9 @@ const handleLoadMore = async (
   direction: 'up' | 'down',
   refItem: ChatMessage
 ): Promise<ChatMessage[]> => {
-  await new Promise((r) => setTimeout(r, 1e3));
-
+  await new Promise((r) =>
+    setTimeout(r, direction === "down" ? 100 : 1e3)
+  );
   const idx = ALL_MESSAGES.findIndex((m) => m.id === refItem.id);
   if (idx === -1) return [];
 
