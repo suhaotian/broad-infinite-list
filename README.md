@@ -277,7 +277,7 @@ If you find any issues or disadvantages, please create an issue. I will review i
 
 ## Projects You May Also Be Interested In
 
-- [xior](https://github.com/suhaotian/xior) - The best tiny fetch library with axios-like API and rich plugins support 
+- [xior](https://github.com/suhaotian/xior) - The best tiny fetch library with axios-like API and built-in support rich plugins(Cache, Error retries, Requests throttle...)
 - [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects **v1.0.0 is coming 🚚**
 - [useNextTick](https://github.com/suhaotian/use-next-tick) - `nextTick` but for react: Running callbacks after the DOM or native views have updated.
 
