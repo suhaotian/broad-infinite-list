@@ -40,9 +40,9 @@
       - [3. Why should I use `broad-infinite-list` instead of others?](#3-why-should-i-use-broad-infinite-list-instead-of-others)
       - [4. What frameworks does `broad-infinite-list` support currently?](#4-what-frameworks-does-broad-infinite-list-support-currently)
       - [5. What's the disadvantage of `broad-infinite-list`?](#5-whats-the-disadvantage-of-broad-infinite-list)
+  - [Projects You May Also Be Interested In](#projects-you-may-also-be-interested-in)
   - [Reporting Issues](#reporting-issues)
   - [Support](#support)
-  - [Projects You May Also Be Interested In](#projects-you-may-also-be-interested-in)
 
 ### Expo Demo Preview(React Native)
 
@@ -200,7 +200,7 @@ export default MyList;
 | Property        | Type                                                                                     | Required | Default     | Description                                                                      |
 | --------------- | ---------------------------------------------------------------------------------------- | -------- | ----------- | -------------------------------------------------------------------------------- |
 | `items`         | `T[]`                                                                                    | Yes      | -           | Current array of items to display                                                |
-| `itemKey`       | `(item: T) => string \| number`                                                                    | Yes      | -           | Function to extract a unique key from each item                                  |
+| `itemKey`       | `(item: T) => string \| number`                                                          | Yes      | -           | Function to extract a unique key from each item                                  |
 | `renderItem`    | `(item: T) => React.ReactNode`                                                           | Yes      | -           | Function to render each item                                                     |
 | `onLoadMore`    | `(direction: "up" \| "down", refItem: T) => Promise<T[]>`                                | Yes      | -           | Called when more items should be loaded; returns the new items to prepend/append |
 | `hasPrevious`   | `boolean`                                                                                | Yes      | -           | Whether there are more items available above the current view                    |
@@ -233,7 +233,7 @@ export default MyList;
 | `scrollToTop`       | `(behavior?: ScrollBehavior) => void`                                        | Yes      | -       | Scroll to the top of the list                                       |
 | `scrollToBottom`    | `(behavior?: ScrollBehavior) => void`                                        | Yes      | -       | Scroll to the bottom of the list                                    |
 | `scrollTo`          | `(top: number, behavior?: ScrollBehavior) => void`                           | Yes      | -       | Scroll to a specific pixel offset from top                          |
-| `scrollToKey`       | `(key: string \| number, behavior?: ScrollBehavior) => void`                           | Yes      | -       | Scroll to an item by its key                                        |
+| `scrollToKey`       | `(key: string \| number, behavior?: ScrollBehavior) => void`                 | Yes      | -       | Scroll to an item by its key                                        |
 | `getTopDistance`    | `() => number`                                                               | Yes      | -       | Get current distance to top                                         |
 | `getBottomDistance` | `() => number`                                                               | Yes      | -       | Get Current distance to bottom                                      |
 | `handleLoad`        | `(direction: 'up' \| 'down', getItems: () => T[]   \| Promise<T[]>) => void` | Yes      | -       | Manual Load Items (Previous, only support user scroll trigger load) |
@@ -275,6 +275,12 @@ Currently, `broad-infinite-list` supports React, React Native, and Vue.
 
 If you find any issues or disadvantages, please create an issue. I will review it and fix it if possible. Thank you.
 
+## Projects You May Also Be Interested In
+
+- [xior](https://github.com/suhaotian/xior) - The best tiny fetch library with axios-like API and rich plugins support 
+- [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects **v1.0.0 is coming 🚚**
+- [useNextTick](https://github.com/suhaotian/use-next-tick) - `nextTick` but for react: Running callbacks after the DOM or native views have updated.
+
 ## Reporting Issues
 
 Found an issue? Please feel free to [create issue](https://github.com/suhaotian/broad-infinite-list/issues/new)
@@ -282,9 +288,3 @@ Found an issue? Please feel free to [create issue](https://github.com/suhaotian/
 ## Support
 
 If you find this project helpful, consider [buying me a coffee](https://github.com/suhaotian/broad-infinite-list/stargazers).
-
-## Projects You May Also Be Interested In
-
-- [xior](https://github.com/suhaotian/xior) - Tiny fetch library with plugins support and axios-like API
-- [tsdk](https://github.com/tsdk-monorepo/tsdk) - Type-safe API development CLI tool for TypeScript projects
-- [useNextTick](https://github.com/suhaotian/use-next-tick) - `nextTick` but for react: Running callbacks after the DOM or native views have updated.

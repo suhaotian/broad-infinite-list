@@ -19,16 +19,72 @@ const VIEW_COUNT = 50;
 const PAGE_SIZE = 20;
 const CATEGORIES = ["Tech", "Science", "Politics", "Business"];
 
-const generateNews = (id: number): NewsItem => ({
-  id,
-  title: `Breaking: Article #${id} regarding ${
-    CATEGORIES[id % CATEGORIES.length]
-  }`,
-  category: CATEGORIES[id % CATEGORIES.length] as string,
-  time: new Date(
-    Date.now() - (TOTAL_COUNT - id) * 3600000
-  ).toLocaleTimeString(),
-});
+const VERBS = [
+  "shakes",
+  "reshapes",
+  "challenges",
+  "transforms",
+  "disrupts",
+  "redefines",
+  "accelerates",
+  "sparks debate over",
+  "raises questions about",
+];
+
+const SUBJECTS = [
+  "global markets",
+  "tech industry",
+  "local communities",
+  "scientific research",
+  "government policy",
+  "startup ecosystem",
+  "digital privacy",
+  "climate strategy",
+  "education systems",
+];
+
+const CONTEXT = [
+  "after unexpected developments",
+  "amid growing international pressure",
+  "following a controversial decision",
+  "as experts weigh long-term impact",
+  "in a rapidly shifting landscape",
+  "while analysts predict major changes",
+  "as new data emerges",
+];
+
+const ADJECTIVES = [
+  "dramatic",
+  "unexpected",
+  "rapid",
+  "controversial",
+  "historic",
+  "surprising",
+  "wide-ranging",
+];
+
+const rand = (arr: string[]) =>
+  arr[Math.floor(Math.random() * arr.length)] || "";
+
+const generateTitle = (category: string) => {
+  return `${
+    rand(ADJECTIVES).charAt(0).toUpperCase() + rand(ADJECTIVES).slice(1)
+  } shift in ${category}: ${rand(SUBJECTS)} ${rand(VERBS)} ${rand(CONTEXT)}`;
+};
+
+const generateNews = (id: number): NewsItem => {
+  const category = CATEGORIES[id % CATEGORIES.length] as string;
+
+  return {
+    id,
+    title: generateTitle(category),
+    category,
+    time: new Date(
+      Date.now() - (TOTAL_COUNT - id) * 3600000
+    ).toLocaleTimeString(),
+  };
+};
+
 let ALL_NEWS: NewsItem[] = [];
 
 let currentItems: NewsItem[] = [];
@@ -158,11 +214,15 @@ export default function NewsFeedDemo() {
             onClick={() => {
               lastVisitId = item.id;
             }}
-            className="relative block p-8 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            className="relative block p-4 md:p-8 border-b border-gray-50 hover:bg-gray-50 transition-colors">
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">
               {item.category}
             </span>
-            <h3 className="text-xl font-bold mt-1 text-slate-800">
+            <h3
+              className={
+                "text-xl font-bold mt-1 text-slate-800 " +
+                (item.id % 2 === 0 ? "line-clamp-2" : "line-clamp-3")
+              }>
               {item.title}
             </h3>
             <p className="text-gray-400 text-sm mt-2 font-medium">
