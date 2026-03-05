@@ -313,7 +313,7 @@ export default function E2ETests(): ReactNode {
                 {TOTAL_ITEMS} items · pages of {PAGE_SIZE} · max window {30}
               </div>
               <button onClick={() => listDemoRef.current?.triggerUpBug()}>
-                🐛 Trigger Bug
+                🐛 Trigger Bug(Already Fixed)
               </button>{" "}
               <label>
                 <input
