@@ -66,8 +66,8 @@ const ADJECTIVES = [
 const rand = (arr: string[]) =>
   arr[Math.floor(Math.random() * arr.length)] || "";
 
-const generateTitle = (category: string) => {
-  return `${
+const generateTitle = (category: string,id: number) => {
+  return `${id}. ${
     rand(ADJECTIVES).charAt(0).toUpperCase() + rand(ADJECTIVES).slice(1)
   } shift in ${category}: ${rand(SUBJECTS)} ${rand(VERBS)} ${rand(CONTEXT)}`;
 };
@@ -77,7 +77,7 @@ const generateNews = (id: number): NewsItem => {
 
   return {
     id,
-    title: generateTitle(category),
+    title: generateTitle(category, id),
     category,
     time: new Date(
       Date.now() - (TOTAL_COUNT - id) * 3600000
