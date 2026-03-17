@@ -325,7 +325,7 @@ const ChatGPTInterface: React.FC<ChatComponentProps> = ({
             : "bg-white border-black/5 text-gray-800"
         }`}>
         <a
-          href="/broad-infinite-list"
+          href="/"
           className="flex items-center gap-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md px-2 py-2 transition-colors">
           <span className="font-semibold text-base">ChatGPT Demo</span>
         </a>
@@ -499,7 +499,7 @@ const ClaudeInterface: React.FC<ChatComponentProps> = ({
           isDark ? "bg-[#1d1c1a] text-[#d1d1cf]" : "bg-[#f5f2e8] text-[#3e3e3c]"
         }`}>
         <a
-          href="/broad-infinite-list"
+          href="/"
           className="flex items-center gap-3 select-none">
           <div
             className={`p-1.5 rounded-lg ${

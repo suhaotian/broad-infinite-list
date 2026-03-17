@@ -67,7 +67,7 @@ export default function Demos() {
           headerItem={
             <div className="flex space-x-1 md:space-x-6 items-center pr-2">
               <a
-                href="/broad-infinite-list"
+                href="/"
                 className="flex items-center mr-4 text-sm font-bold transition-colors">
                 <HomeIcon size={18} />
               </a>
@@ -87,7 +87,7 @@ export default function Demos() {
           headerItem={
             <div className="flex space-x-1 md:space-x-6 items-center pr-2">
               <a
-                href="/broad-infinite-list"
+                href="/"
                 className="flex items-center mr-4 text-sm font-bold transition-colors">
                 <HomeIcon size={18} />
               </a>
