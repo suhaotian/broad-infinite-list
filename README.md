@@ -1,4 +1,4 @@
-# [Broad Infinite List](https://suhaotian.github.io/broad-infinite-list/) &middot; [![Size](https://deno.bundlejs.com/badge?q=broad-infinite-list/react&treeshake=[{default}]&config={%22esbuild%22:{%22external%22:[%22react%22,%22react-dom%22,%22react/jsx-runtime%22]}})](https://bundlejs.com/?q=broad-infinite-list/react&treeshake=%5B%7Bdefault%7D%5D&config=%7B%22esbuild%22:%7B%22external%22:%5B%22react%22,%22react-dom%22,%22react/jsx-runtime%22%5D%7D%7D) [![npm version](https://img.shields.io/npm/v/broad-infinite-list.svg?style=flat)](https://www.npmjs.com/package/broad-infinite-list) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suhaotian/broad-infinite-list/pulls) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/suhaotian/broad-infinite-list/blob/main/LICENSE) [![jsDocs.io](https://img.shields.io/badge/jsDocs.io-reference-blue)](https://www.jsdocs.io/package/broad-infinite-list) ![typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label&color=blue)
+# [Broad Infinite List](https://broad-infinite-list.tsdk.dev/) &middot; [![Size](https://deno.bundlejs.com/badge?q=broad-infinite-list/react&treeshake=[{default}]&config={%22esbuild%22:{%22external%22:[%22react%22,%22react-dom%22,%22react/jsx-runtime%22]}})](https://bundlejs.com/?q=broad-infinite-list/react&treeshake=%5B%7Bdefault%7D%5D&config=%7B%22esbuild%22:%7B%22external%22:%5B%22react%22,%22react-dom%22,%22react/jsx-runtime%22%5D%7D%7D) [![npm version](https://img.shields.io/npm/v/broad-infinite-list.svg?style=flat)](https://www.npmjs.com/package/broad-infinite-list) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suhaotian/broad-infinite-list/pulls) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/suhaotian/broad-infinite-list/blob/main/LICENSE) [![jsDocs.io](https://img.shields.io/badge/jsDocs.io-reference-blue)](https://www.jsdocs.io/package/broad-infinite-list) ![typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label&color=blue)
 
 **broad-infinite-list** is a tiny component that renders large lists efficiently by showing only a limited range of items. No need to configure each row’s height or use fixed row heights. It is suitable for chat message lists, news feed lists, and stream logs.
 
@@ -13,12 +13,12 @@
 
 ### React & Vue Demos
 
-- Chat Messages List [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chat)
-- News feed list & detail(Scroll Restoration when navigation back) [Demo](https://suhaotian.github.io/broad-infinite-list?demo=news)
-- Logs [Demo](https://suhaotian.github.io/broad-infinite-list?demo=logs)
-- Vue Chat [Demo](https://suhaotian.github.io/broad-infinite-list/vue?demo=chat)
-- ChatGPT [Demo](https://suhaotian.github.io/broad-infinite-list?demo=chatgpt)
-- Claude theme [Demo](https://suhaotian.github.io/broad-infinite-list?demo=claude)
+- Chat Messages List [Demo](https://broad-infinite-list.tsdk.dev?demo=chat)
+- News feed list & detail(Scroll Restoration when navigation back) [Demo](https://broad-infinite-list.tsdk.dev?demo=news)
+- Logs [Demo](https://broad-infinite-list.tsdk.dev?demo=logs)
+- Vue Chat [Demo](https://broad-infinite-list.tsdk.dev/vue?demo=chat)
+- ChatGPT [Demo](https://broad-infinite-list.tsdk.dev?demo=chatgpt)
+- Claude theme [Demo](https://broad-infinite-list.tsdk.dev?demo=claude)
 
 **Table of Contents**
 
